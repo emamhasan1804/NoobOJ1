@@ -323,7 +323,6 @@ function toggleVisibility(id) {
     })
     .then(res => {
         if (!res.ok) throw new Error("failed");
-
         sessionStorage.setItem("toast", "Updated successfully");
 
         location.reload();
