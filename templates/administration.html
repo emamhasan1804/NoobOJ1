@@ -204,27 +204,19 @@
                     </td>
                     {{if .Visibility}}
                     <td
-                        style="width: 7rem; padding: 0px; margin: 0px; background-color: #ff4d4f;color: white; text-align: center; vertical-align: middle; padding-top: 5px;">
-                        <form action="/admin/toggle" method="POST">
-                            <input type="hidden" name="id" value="{{.ID}}">
-                            <button type="submit" style="color: white; font-weight: bold; font-size: small;">
-                                Unpublish
-                            </button>
-                        </form>
-
+                        style="width: 7rem; padding: 0; margin: 0; background-color: rgb(231,50,36); color: white; text-align: center; vertical-align: middle; padding-top: 5px;">
+                        <button onclick="toggleVisibility({{.ID}})"
+                            style="color: white; font-weight: bold; font-size: small;">
+                            Unpublish
+                        </button>
                     </td>
                     {{else}}
                     <td
-                        style="width: 7rem; padding: 0px; margin: 0px; background-color: rgb(5, 146, 5);color: white; text-align: center; vertical-align: middle; padding-top: 5px;">
-                        <form method="POST" action="/admin/toggle">
-                            <input type="hidden" name="id" value="{{.ID}}">
-                            <button type="submit" style="color: white; font-weight: bold; font-size: small;">
-                                Publish
-                            </button>
-                        </form>
-
-        
-
+                        style="width: 7rem; padding: 0; margin: 0; background-color: rgb(5, 146, 5); color: white; text-align: center; vertical-align: middle; padding-top: 5px;">
+                        <button onclick="toggleVisibility({{.ID}})"
+                            style="color: white; font-weight: bold; font-size: small;">
+                            Publish
+                        </button>
                     </td>
                     {{end}}
                 </tr>
@@ -238,7 +230,24 @@
         </div>
 
     </div>
+ <div id="toast" style="
+    visibility: hidden;
+    min-width: 220px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 8px;
+    padding: 12px 16px;
+    position: fixed;
+    z-index: 9999;
+    right: 20px;
+    bottom: 30px;
+    font-size: 14px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+">
 </div>
+</div>
+
 
 
 <style>
@@ -264,7 +273,7 @@
     const manageProblemsBtn = document.getElementById('manageProblemsBtn');
 
     function showTab(tab) {
-        if(tab === 'problem') {
+        if (tab === 'problem') {
             contestsDiv.style.display = 'none';
             problemsDiv.style.display = 'block';
             manageProblemsBtn.classList.add('active-btn');
@@ -291,5 +300,45 @@
         showTab('problem');
         history.replaceState(null, '', '/administration?tab=problem');
     });
+</script>
+<script>
+function showToast(message, isError = false) {
+    const toast = document.getElementById("toast");
+    toast.innerText = message;
+    toast.style.backgroundColor = isError ? "#e74c3c" : "#333";
+    toast.style.visibility = "visible";
+
+    setTimeout(() => {
+        toast.style.visibility = "hidden";
+    }, 2000);
+}
+
+function toggleVisibility(id) {
+    fetch("/admin/toggle", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: "id=" + id
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("failed");
+
+        sessionStorage.setItem("toast", "Updated successfully");
+
+        location.reload();
+    })
+    .catch(() => {
+        sessionStorage.setItem("toast", "Update failed");
+        location.reload();
+    });
+}
+window.addEventListener("load", () => {
+    const msg = sessionStorage.getItem("toast");
+    if (msg) {
+        showToast(msg);
+        sessionStorage.removeItem("toast");
+    }
+});
 </script>
 {{end}}

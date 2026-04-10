@@ -31,7 +31,8 @@ func home(w http.ResponseWriter, r *http.Request) {
 	}
 	session, _ := store.Get(r, "session")
 	username, ok := session.Values["username"].(string)
-	user_type, _ := session.Values["user_type"].(string)
+	var user_type string
+	database.DB.QueryRow("SELECT user_type FROM users WHERE username=?", username).Scan(&user_type)
 	logout := "Logout"
 	if !ok || session.Values["username"] == nil {
 		username = "Login"
@@ -59,7 +60,8 @@ func home(w http.ResponseWriter, r *http.Request) {
 func problemsetHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
 	username, _ := session.Values["username"].(string)
-	user_type, _ := session.Values["user_type"].(string)
+	var user_type string
+	database.DB.QueryRow("SELECT user_type FROM users WHERE username=?", username).Scan(&user_type)
 	var admin bool = false
 	if user_type == "admin" {
 		admin = true
@@ -85,18 +87,18 @@ func problemsetHandler(w http.ResponseWriter, r *http.Request) {
 		rows.Scan(&p.ID, &p.Title)
 		database.DB.QueryRow("SELECT COUNT(DISTINCT username) FROM submissions WHERE problem_id=? AND verdict='Accepted'", p.ID).Scan(&p.Solved)
 		database.DB.QueryRow("SELECT rating FROM ratings WHERE problem_id=? LIMIT 1", p.ID).Scan(&p.Rating)
-		tags, err := database.DB.Query("SELECT tag FROM tags WHERE problem_id=?", p.ID)
+		tags, err := database.DB.Query("SELECT name FROM tags,problem_tags WHERE problem_id=? AND tags.id=problem_tags.tag_id", p.ID)
 		if err != nil {
 			fmt.Fprint(w, "Database error: "+err.Error())
 			return
 		}
+
 		for tags.Next() {
 			temp := ""
 			tags.Scan(&temp)
 			p.Tags = append(p.Tags, temp)
 		}
 		tags.Close()
-
 		p.Tried = 0
 		var cnt int
 		err = database.DB.QueryRow("SELECT COUNT(*) FROM submissions WHERE problem_id=? AND username=?", p.ID, username).Scan(&cnt)
@@ -137,7 +139,8 @@ func problemsetHandler(w http.ResponseWriter, r *http.Request) {
 func leaderboardHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
 	username, _ := session.Values["username"].(string)
-	user_type, _ := session.Values["user_type"].(string)
+	var user_type string
+	database.DB.QueryRow("SELECT user_type FROM users WHERE username=?", username).Scan(&user_type)
 	var admin bool = false
 	if user_type == "admin" {
 		admin = true
@@ -192,7 +195,10 @@ func leaderboardHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func newProblemHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
+	session, _ := store.Get(r, "session")
+	username, _ := session.Values["username"].(string)
+	switch r.Method {
+	case "GET":
 		t, err := template.ParseFiles(
 			"templates/index.html",
 			"templates/new_problem.html",
@@ -202,8 +208,7 @@ func newProblemHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		session, _ := store.Get(r, "session")
-		username, _ := session.Values["username"].(string)
+
 		type PageData struct {
 			Title     string
 			Pusername string
@@ -218,90 +223,21 @@ func newProblemHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		t.ExecuteTemplate(w, "index.html", data)
 		return
-	}
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Parse error", http.StatusBadRequest)
-		return
-	}
-
-	title := r.FormValue("title")
-	statement := r.FormValue("statement")
-	inputDesc := r.FormValue("input_desc")
-	outputDesc := r.FormValue("output_desc")
-	constraints := r.FormValue("constraints")
-	tagsRaw := r.FormValue("tags")
-	rating := r.FormValue("rating")
-	time := r.FormValue("time")
-	memory := r.FormValue("memory")
-	editorial := r.FormValue("editorial")
-	code := r.FormValue("code")
-
-	// Start a Transaction
-	tx, err := database.DB.Begin()
-	if err != nil {
-		http.Error(w, "Transaction error: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Defer a rollback in case of any early returns
-	defer tx.Rollback()
-	session, _ := store.Get(r, "session")
-	username, _ := session.Values["username"].(string)
-	res, err := tx.Exec("INSERT INTO problems (title, statement, input, output, constraints, author,time_limit,memory_limit,editorial,code) VALUES (?, ?, ?, ?, ?,?,?,?,?,?)", title, statement, inputDesc, outputDesc, constraints, username, time, memory, editorial, code)
-	if err != nil {
-		fmt.Fprint(w, "Error inserting problem: "+err.Error())
-		return
-	}
-	problemID, err := res.LastInsertId()
-	if err != nil {
-		fmt.Fprint(w, "Error getting last ID: "+err.Error())
-		return
-	}
-	res, err = tx.Exec("INSERT INTO ratings(problem_id,rating) VALUES(?,?)", problemID, rating)
-	if err != nil {
-		fmt.Fprint(w, "Error inserting rating: "+err.Error())
-		return
-	}
-	// Insert Tags (Splitting by comma)
-	if tagsRaw != "" {
-		tags := strings.Split(tagsRaw, ",")
-		for _, tag := range tags {
-			tag = strings.TrimSpace(tag)
-			if tag != "" {
-				_, err = tx.Exec("INSERT INTO tags (problem_id, tag) VALUES (?, ?)", problemID, tag)
-				if err != nil {
-					fmt.Fprint(w, "Error inserting tags: "+err.Error())
-					return
-				}
-			}
-		}
-	}
-
-	testInputs := r.Form["test_input[]"]
-	testOutputs := r.Form["test_output[]"]
-	testTypes := r.Form["test_type[]"]
-
-	for i := 0; i < len(testInputs); i++ {
-		if testInputs[i] == "" && testOutputs[i] == "" {
-			continue
-		}
-
-		_, err = tx.Exec("INSERT INTO test_cases (problem_id, input, output, type) VALUES (?, ?, ?, ?)", problemID, testInputs[i], testOutputs[i], testTypes[i])
+	case "POST":
+		name := r.FormValue("title")
+		res, err := database.DB.Exec("INSERT INTO problems(title,author) values(?,?)", name, username)
 		if err != nil {
-			fmt.Fprint(w, "Error inserting test case: "+err.Error())
+			fmt.Fprint(w, "Error inserting Problem : "+err.Error())
 			return
 		}
-	}
+		problemID64, _ := res.LastInsertId()
+		problemID := int(problemID64)
 
-	// Commit the transaction
-	err = tx.Commit()
-	if err != nil {
-		fmt.Fprint(w, "Commit error: "+err.Error())
-		return
-	}
+		http.Redirect(w, r, "/edit/problem?id="+strconv.Itoa(int(problemID)), http.StatusSeeOther)
 
-	http.Redirect(w, r, "/administration?tab=problem", http.StatusSeeOther)
+	default:
+		http.Redirect(w, r, "/administration?tab=problem", http.StatusSeeOther)
+	}
 }
 
 func newContestHandler(w http.ResponseWriter, r *http.Request) {
@@ -880,7 +816,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/register", http.StatusSeeOther)
 		return
 	}
-	session.Options.MaxAge = -1 // delete session
+	session.Options.MaxAge = -1
 	session.Save(r, w)
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
@@ -1207,6 +1143,144 @@ func deleteHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/administration?tab=problem", http.StatusSeeOther)
 
 }
+
+func kola(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		t, err := template.ParseFiles(
+			"templates/index.html",
+			"templates/new_problem.html",
+			"templates/footer.html",
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		session, _ := store.Get(r, "session")
+		username, _ := session.Values["username"].(string)
+
+		rows, err := database.DB.Query("SELECT id,name FROM tags")
+		if err != nil {
+			fmt.Fprint(w, "Error getting tags : "+err.Error())
+			return
+		}
+		defer rows.Close()
+
+		type TagData struct {
+			ID   int
+			Name string
+		}
+		var tags []TagData
+		for rows.Next() {
+			var p TagData
+			if err := rows.Scan(&p.ID, &p.Name); err != nil {
+				continue
+			}
+			tags = append(tags, p)
+		}
+
+		type PageData struct {
+			Title     string
+			Pusername string
+			Logout    string
+			Admin     bool
+			Tags      []TagData
+		}
+		data := PageData{
+			Title:     "Create Problem - NoobOJ",
+			Pusername: username,
+			Logout:    "Logout",
+			Admin:     true,
+			Tags:      tags,
+		}
+		t.ExecuteTemplate(w, "index.html", data)
+		return
+	}
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "Parse error", http.StatusBadRequest)
+		return
+	}
+
+	title := r.FormValue("title")
+	statement := r.FormValue("statement")
+	inputDesc := r.FormValue("input_desc")
+	outputDesc := r.FormValue("output_desc")
+	constraints := r.FormValue("constraints")
+	tagsRaw := r.FormValue("tags")
+	rating := r.FormValue("rating")
+	time := r.FormValue("time")
+	memory := r.FormValue("memory")
+	editorial := r.FormValue("editorial")
+	code := r.FormValue("code")
+
+	// Start a Transaction
+	tx, err := database.DB.Begin()
+	if err != nil {
+		http.Error(w, "Transaction error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Defer a rollback in case of any early returns
+	defer tx.Rollback()
+	session, _ := store.Get(r, "session")
+	username, _ := session.Values["username"].(string)
+	res, err := tx.Exec("INSERT INTO problems (title, statement, input, output, constraints, author,time_limit,memory_limit,editorial,editorial_code) VALUES (?, ?, ?, ?, ?,?,?,?,?,?)", title, statement, inputDesc, outputDesc, constraints, username, time, memory, editorial, code)
+	if err != nil {
+		fmt.Fprint(w, "Error inserting problem: "+err.Error())
+		return
+	}
+	problemID, err := res.LastInsertId()
+	if err != nil {
+		fmt.Fprint(w, "Error getting last ID: "+err.Error())
+		return
+	}
+	res, err = tx.Exec("INSERT INTO ratings(problem_id,rating) VALUES(?,?)", problemID, rating)
+	if err != nil {
+		fmt.Fprint(w, "Error inserting rating: "+err.Error())
+		return
+	}
+	// Insert Tags (Splitting by comma)
+
+	if tagsRaw != "" {
+		tags := strings.Split(tagsRaw, ",")
+		for _, tag := range tags {
+			tag = strings.TrimSpace(tag)
+			if tag != "" {
+				_, err = tx.Exec("INSERT INTO problem_tags (problem_id, tag_id) VALUES (?, ?)", problemID, tag)
+				if err != nil {
+					fmt.Fprint(w, "Error inserting tags: "+err.Error())
+					return
+				}
+			}
+		}
+	}
+
+	testInputs := r.Form["test_input[]"]
+	testOutputs := r.Form["test_output[]"]
+	testTypes := r.Form["test_type[]"]
+
+	for i := 0; i < len(testInputs); i++ {
+		if testInputs[i] == "" && testOutputs[i] == "" {
+			continue
+		}
+
+		_, err = tx.Exec("INSERT INTO test_cases (problem_id, input, output, type) VALUES (?, ?, ?, ?)", problemID, testInputs[i], testOutputs[i], testTypes[i])
+		if err != nil {
+			fmt.Fprint(w, "Error inserting test case: "+err.Error())
+			return
+		}
+	}
+
+	// Commit the transaction
+	err = tx.Commit()
+	if err != nil {
+		fmt.Fprint(w, "Commit error: "+err.Error())
+		return
+	}
+
+	http.Redirect(w, r, "/administration?tab=problem", http.StatusSeeOther)
+}
+
 func editProblemHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	session, _ := store.Get(r, "session")
@@ -1223,7 +1297,13 @@ func editProblemHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		t, err := template.ParseFiles(
+		funcMap := template.FuncMap{
+			"eq": func(a, b interface{}) bool {
+				return a == b
+			},
+		}
+
+		t, err := template.New("base").Funcs(funcMap).ParseFiles(
 			"templates/index.html",
 			"templates/edit_problem.html",
 			"templates/footer.html",
@@ -1232,19 +1312,54 @@ func editProblemHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		var title, statement, input, output, constraints, rating, editorial, code string
-		var time, memory int
-		database.DB.QueryRow("SELECT title,statement,input,output,constraints,time_limit,memory_limit,editorial,code from problems where id=?", id).Scan(&title, &statement, &input, &output, &constraints, &time, &memory, &editorial, &code)
+		var title, statement, input, output, constraints, editorial, code string
+		var time, memory, rating int
+		err = database.DB.QueryRow(`SELECT 
+title,
+IFNULL(statement, ''),
+IFNULL(input, ''),
+IFNULL(output, ''),
+IFNULL(constraints, ''),
+time_limit,
+memory_limit,
+IFNULL(editorial, ''),
+IFNULL(editorial_code, '')
+FROM problems WHERE id=?`, id).Scan(&title, &statement, &input, &output, &constraints, &time, &memory, &editorial, &code)
 		database.DB.QueryRow("SELECT rating FROM ratings WHERE problem_id=?", id).Scan(&rating)
-		rows, err := database.DB.Query("SELECT tag from tags where problem_id=?", id)
-		var tags string
-		for rows.Next() {
-			var p string
-			rows.Scan(&p)
-			tags += p + ", "
+		rows, err := database.DB.Query("SELECT id,name from tags,problem_tags where tags.id=problem_tags.tag_id and problem_id=?", id)
+		if err != nil {
+			fmt.Fprint(w, "Error getting tags : "+err.Error())
+			return
 		}
-		if len(tags) >= 2 {
-			tags = tags[:len(tags)-2]
+		defer rows.Close()
+
+		type TagData struct {
+			ID   int
+			Name string
+		}
+		var selectedTags []TagData
+		for rows.Next() {
+			var p TagData
+			if err := rows.Scan(&p.ID, &p.Name); err != nil {
+				continue
+			}
+			selectedTags = append(selectedTags, p)
+		}
+
+		rows, err = database.DB.Query("SELECT id,name FROM tags")
+		if err != nil {
+			fmt.Fprint(w, "Error getting tags : "+err.Error())
+			return
+		}
+		defer rows.Close()
+
+		var tags []TagData
+		for rows.Next() {
+			var p TagData
+			if err := rows.Scan(&p.ID, &p.Name); err != nil {
+				continue
+			}
+			tags = append(tags, p)
 		}
 
 		rows, err = database.DB.Query("SELECT input,output,type From test_cases WHERE problem_id=?", id)
@@ -1260,45 +1375,47 @@ func editProblemHandler(w http.ResponseWriter, r *http.Request) {
 			test = append(test, p)
 		}
 		type PageData struct {
-			Title       string
-			Pusername   string
-			Logout      string
-			Admin       bool
-			ID          string
-			Ptitle      string
-			Statement   string
-			Input       string
-			Output      string
-			Constraints string
-			Rating      string
-			Tags        string
-			Time        int
-			Memory      int
-			Editorial   string
-			Code        string
-			Test        []Testdata
-			Hidden      string
+			Title        string
+			Pusername    string
+			Logout       string
+			Admin        bool
+			ID           string
+			Ptitle       string
+			Statement    string
+			Input        string
+			Output       string
+			Constraints  string
+			Rating       int
+			SelectedTags []TagData
+			Tags         []TagData
+			Time         int
+			Memory       int
+			Editorial    string
+			Code         string
+			Test         []Testdata
+			Hidden       string
 		}
 
 		data := PageData{
-			Title:       "Administration - NoobOJ",
-			Pusername:   username,
-			Logout:      "Logout",
-			Admin:       true,
-			ID:          id,
-			Ptitle:      title,
-			Statement:   statement,
-			Input:       input,
-			Output:      output,
-			Constraints: constraints,
-			Rating:      rating,
-			Tags:        tags,
-			Test:        test,
-			Time:        time,
-			Memory:      memory,
-			Editorial:   editorial,
-			Code:        code,
-			Hidden:      "hidden",
+			Title:        "Administration - NoobOJ",
+			Pusername:    username,
+			Logout:       "Logout",
+			Admin:        true,
+			ID:           id,
+			Ptitle:       title,
+			Statement:    statement,
+			Input:        input,
+			Output:       output,
+			Constraints:  constraints,
+			Rating:       rating,
+			SelectedTags: selectedTags,
+			Tags:         tags,
+			Test:         test,
+			Time:         time,
+			Memory:       memory,
+			Editorial:    editorial,
+			Code:         code,
+			Hidden:       "hidden",
 		}
 		t.ExecuteTemplate(w, "index.html", data)
 	}
@@ -1329,9 +1446,7 @@ func editProblemHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Defer a rollback in case of any early returns
 		defer tx.Rollback()
-		// session, _ := store.Get(r, "session")
-		// username, _ := session.Values["username"].(string)
-		_, err = tx.Exec("UPDATE problems SET title=?, statement=?, input=?, output=?, constraints=?, time_limit=?, memory_limit=?, editorial=?, code=? WHERE id=?", title, statement, inputDesc, outputDesc, constraints, time, memory, editorial, code, id)
+		_, err = tx.Exec("UPDATE problems SET title=?, statement=?, input=?, output=?, constraints=?, time_limit=?, memory_limit=?, editorial=?, editorial_code=? WHERE id=?", title, statement, inputDesc, outputDesc, constraints, time, memory, editorial, code, id)
 		if err != nil {
 			fmt.Fprint(w, "Error updating problem: "+err.Error())
 			return
@@ -1343,7 +1458,7 @@ func editProblemHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Insert Tags (Splitting by comma)
-		_, err = tx.Exec("DELETE FROM tags WHERE problem_id=?", problemID)
+		_, err = tx.Exec("DELETE FROM problem_tags WHERE problem_id=?", problemID)
 		if err != nil {
 			fmt.Fprint(w, "Error deleting old tags: "+err.Error())
 			return
@@ -1353,7 +1468,7 @@ func editProblemHandler(w http.ResponseWriter, r *http.Request) {
 			for _, tag := range tags {
 				tag = strings.TrimSpace(tag)
 				if tag != "" {
-					_, err = tx.Exec("INSERT INTO tags (problem_id, tag) VALUES (?, ?)", problemID, tag)
+					_, err = tx.Exec("INSERT IGNORE INTO problem_tags (problem_id, tag_id) VALUES (?, ?)", problemID, tag)
 					if err != nil {
 						fmt.Fprint(w, "Error inserting tags: "+err.Error())
 						return
@@ -1446,28 +1561,82 @@ func editContestHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		rows, err := database.DB.Query("SELECT id,title from problems WHERE author=?", username)
+		if err != nil {
+			fmt.Fprint(w, "error retriving available problems : "+err.Error())
+			return
+		}
+		defer rows.Close()
+
+		type Problem struct {
+			ID    int
+			Title string
+			Score int
+		}
+		var available []Problem
+		for rows.Next() {
+			var p Problem
+			if err := rows.Scan(&p.ID, &p.Title); err != nil {
+				continue
+			}
+			available = append(available, p)
+		}
+
+		rows, err = database.DB.Query("SELECT problems.id,problems.title,contest.score FROM problems,(SELECT * FROM tasks WHERE contest_id=?) as contest where problems.id = contest.problem_id", id)
+		if err != nil {
+			fmt.Fprint(w, "error retriving selected problems : "+err.Error())
+			return
+		}
+		defer rows.Close()
+		var selected []Problem
+		for rows.Next() {
+			var p Problem
+			if err := rows.Scan(&p.ID, &p.Title, &p.Score); err != nil {
+				continue
+			}
+			selected = append(selected, p)
+		}
+
 		// Send raw UTC with Z suffix — browser JS will convert to local time
 		data := struct {
-			Title     string
-			Pusername string
-			Logout    string
-			Admin     bool
-			ID        string
-			Ptitle    string
-			Start     int64
-			End       int64
+			Title             string
+			Pusername         string
+			Logout            string
+			Admin             bool
+			ID                string
+			Ptitle            string
+			Start             int64
+			End               int64
+			AvailableProblems []Problem
+			SelectedProblems  []Problem
 		}{
-			Title:     "Administration - NoobOJ",
-			Pusername: username,
-			Logout:    "Logout",
-			Admin:     true,
-			ID:        id,
-			Ptitle:    title,
-			Start:     startTimeUTC.UTC().UnixMilli(),
-			End:       endTimeUTC.UTC().UnixMilli(),
+			Title:             "Administration - NoobOJ",
+			Pusername:         username,
+			Logout:            "Logout",
+			Admin:             true,
+			ID:                id,
+			Ptitle:            title,
+			Start:             startTimeUTC.UTC().UnixMilli(),
+			End:               endTimeUTC.UTC().UnixMilli(),
+			AvailableProblems: available,
+			SelectedProblems:  selected,
 		}
 
 		t.ExecuteTemplate(w, "index.html", data)
+	}
+	if r.Method == "POST" {
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "Parse error", http.StatusBadRequest)
+			return
+		}
+		// ids := r.Form["problem_ids"]
+		// scores := r.Form["problem_scores"]
+		// database.DB.Exec("DELETE FROM tasks WHERE contest_id=?")
+		// for i := range ids {
+		// 	database.DB.Exec("INSERT INTO tasks(problem_id,contest_id,)")
+		// }
+		return
 	}
 	// if r.Method == "POST" {
 	// 	err := r.ParseForm()
@@ -1643,7 +1812,6 @@ func toggleProblemVisibility(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-	http.Redirect(w, r, "/administration?tab=problem", http.StatusSeeOther)
 }
 
 func announcementHandler(w http.ResponseWriter, r *http.Request) {

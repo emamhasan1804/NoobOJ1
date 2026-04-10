@@ -1,8 +1,3 @@
--- ============================================================= --
--- Schema for Competitive Programming Platform                   --
--- Generated for Go project                                      --
--- ============================================================= --
-
 -- Users
 CREATE TABLE IF NOT EXISTS users (
     username    VARCHAR(50)  PRIMARY KEY,
@@ -10,14 +5,15 @@ CREATE TABLE IF NOT EXISTS users (
     email       VARCHAR(100) NOT NULL UNIQUE,
     password    MEDIUMTEXT NOT NULL,
     user_type   ENUM('user','admin')  NOT NULL DEFAULT 'user',
-    created_on  DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_on  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Profiles (avatar / picture path per user)
+-- Profiles (picture path per user)
 CREATE TABLE IF NOT EXISTS profiles (
     username    VARCHAR(50),
     path        VARCHAR(255) NOT NULL,
     PRIMARY KEY(username),
+    CONSTRAINT profiles_users
     FOREIGN KEY(username)
     REFERENCES users(username) 
     ON DELETE CASCADE 
@@ -25,20 +21,19 @@ CREATE TABLE IF NOT EXISTS profiles (
 );
 
 -- Problems
-DROP TABLE problems;
 CREATE TABLE IF NOT EXISTS problems (
-    id          	SERIAL       PRIMARY KEY,
+    id          	BIGINT UNSIGNED AUTO_INCREMENT       PRIMARY KEY,
     title       	VARCHAR(200) NOT NULL,
-    statement   	TEXT         NOT NULL,
+    statement   	TEXT,
     input       	TEXT,
     output      	TEXT,
     constraints 	TEXT,
     author 			VARCHAR(50)	NOT NULL,
-    time_limit 	 	INT			DEFAULT 1,
-    memory_limit 	INT			DEFAULT 512,
+    time_limit 	 	INT	 DEFAULT 1,
+    memory_limit 	INT	 DEFAULT 512,
     editorial 		TEXT,
-    code 			TEXT,
-    visibility 		BOOLEAN		DEFAULT FALSE,
+    editorial_code 			TEXT,
+    visibility 		BOOLEAN		NOT NULL DEFAULT FALSE,
     CONSTRAINT problems_users
     FOREIGN KEY(author) 
     REFERENCES users(username)
@@ -48,11 +43,11 @@ CREATE TABLE IF NOT EXISTS problems (
 
 -- Test Cases
 CREATE TABLE IF NOT EXISTS test_cases (
-    id          SERIAL  PRIMARY KEY,
+    id          BIGINT UNSIGNED AUTO_INCREMENT  PRIMARY KEY,
     problem_id  BIGINT UNSIGNED NOT NULL,
     input       TEXT    NOT NULL,
     output      TEXT    NOT NULL,
-    type		ENUM('sample','hidden') DEFAULT 'hidden',
+    type		ENUM('sample','hidden') NOT NULL DEFAULT 'hidden',
     CONSTRAINT test_cases_problems
     FOREIGN KEY(problem_id)
     REFERENCES problems(id)
@@ -61,7 +56,7 @@ CREATE TABLE IF NOT EXISTS test_cases (
 );
 
 -- Tags
-CREATE TABLE IF NOT EXISts tags(
+CREATE TABLE IF NOT EXISTS tags(
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) UNIQUE NOT NULL
 );
@@ -105,14 +100,16 @@ INSERT IGNORE INTO tags (name) VALUES
 
 -- Tags of a Problem
 CREATE TABLE IF NOT EXISTS problem_tags (
-    id          SERIAL      PRIMARY KEY,
     problem_id  BIGINT UNSIGNED NOT NULL,        
-    tag_id BIGINT UNSIGNED NOT NULL,
-    CONSTRAINT tags_problems
+    tag_id INT  NOT NULL,
+    PRIMARY KEY(problem_id,tag_id),
+
+    CONSTRAINT problem_tags_problems
     FOREIGN KEY(problem_id)
     REFERENCES problems(id) 
     ON DELETE CASCADE 
     ON UPDATE CASCADE,
+
     CONSTRAINT problem_tags_tags
     FOREIGN KEY(tag_id)
     REFERENCES tags(id)
@@ -122,9 +119,8 @@ CREATE TABLE IF NOT EXISTS problem_tags (
 
 -- Ratings
 CREATE TABLE IF NOT EXISTS ratings (
-    id          SERIAL      PRIMARY KEY,
-    problem_id  BIGINT UNSIGNED NOT NULL,
-    rating      INT DEFAULT 800,
+    problem_id  BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    rating      INT NOT NULL DEFAULT 800,
     CONSTRAINT ratings_problems
     FOREIGN KEY(problem_id)
     REFERENCES problems(id)
@@ -132,65 +128,123 @@ CREATE TABLE IF NOT EXISTS ratings (
     ON UPDATE CASCADE
 );
 
+
 -- Contests
 CREATE TABLE IF NOT EXISTS contests (
-    id          SERIAL       PRIMARY KEY,
+    id          BIGINT UNSIGNED AUTO_INCREMENT       PRIMARY KEY,
     title       VARCHAR(255) NOT NULL,
-    start_time  TIMESTAMP    NOT NULL,
-    end_time    TIMESTAMP    NOT NULL
+    start_time  DATETIME NOT NULL,
+	end_time 	DATETIME NOT NULL,
+    visibility	BOOLEAN  NOT NULL DEFAULT FALSE
 );
 
 -- Tasks (problems assigned to a contest with a score)
 CREATE TABLE IF NOT EXISTS tasks (
-    id          SERIAL PRIMARY KEY,
-    problem_id  INT    NOT NULL REFERENCES problems(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    contest_id  INT    NOT NULL REFERENCES contests(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    score       INT    NOT NULL DEFAULT 0,
-    UNIQUE (problem_id, contest_id)
+    problem_id  BIGINT UNSIGNED,
+    contest_id  BIGINT UNSIGNED,
+    score       INT NOT NULL DEFAULT 1000,
+    PRIMARY KEY(problem_id,contest_id),
+    CONSTRAINT tasks_problems
+    FOREIGN KEY(problem_id)
+    REFERENCES problems(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    
+    CONSTRAINT tasks_contests
+    FOREIGN KEY(contest_id)
+    REFERENCES contests(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );
 
 -- Participants (users enrolled in a contest)
 CREATE TABLE IF NOT EXISTS participants (
-    contest_id  INT         NOT NULL REFERENCES contests(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    username    VARCHAR(50) NOT NULL REFERENCES users(username) ON DELETE CASCADE ON UPDATE CASCADE,
-    PRIMARY KEY (contest_id, username)
+    contest_id  BIGINT UNSIGNED,
+    participant    VARCHAR(50),
+    PRIMARY KEY (contest_id, participant),
+    
+    CONSTRAINT participants_contests
+    FOREIGN KEY(contest_id)
+    REFERENCES contests(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    
+    CONSTRAINT participants_users
+    FOREIGN KEY(participant)
+    REFERENCES users(username)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );
 
 -- Authors (users who authored / set a contest)
 CREATE TABLE IF NOT EXISTS authors (
-    contest_id  INT         NOT NULL REFERENCES contests(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    username    VARCHAR(50) NOT NULL REFERENCES users(username) ON DELETE CASCADE ON UPDATE CASCADE,
-    PRIMARY KEY (contest_id, username)
+    contest_id  BIGINT UNSIGNED,
+    author    VARCHAR(50),
+    role 		ENUM('owner','moderator') NOT NULL DEFAULT 'moderator',
+    PRIMARY KEY (contest_id, author),
+    
+    CONSTRAINT authors_contests
+    FOREIGN KEY(contest_id)
+    REFERENCES contests(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    
+    CONSTRAINT authors_users
+    FOREIGN KEY(author)
+    REFERENCES users(username)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );
 
 -- Submissions
 CREATE TABLE IF NOT EXISTS submissions (
-    id           SERIAL      PRIMARY KEY,
-    problem_id   INT         NOT NULL REFERENCES problems(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    username     VARCHAR(50) NOT NULL REFERENCES users(username) ON DELETE CASCADE ON UPDATE CASCADE,
+    id           BIGINT UNSIGNED AUTO_INCREMENT      PRIMARY KEY NOT NULL,
+    problem_id   BIGINT UNSIGNED NOT NULL,
+    username     VARCHAR(50) NOT NULL,
     code         TEXT        NOT NULL,
-    submitted_at TIMESTAMP   NOT NULL DEFAULT NOW(),
-    verdict      VARCHAR(20) NOT NULL DEFAULT 'pending'
+    language     VARCHAR(50) NOT NULL DEFAULT 'GNU G++14',
+    submitted_at DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    verdict      VARCHAR(20) NOT NULL DEFAULT 'pending',
+    
+    CONSTRAINT submissions_problems
+    FOREIGN KEY(problem_id)
+    REFERENCES problems(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    
+    CONSTRAINT submissions_users
+    FOREIGN KEY(username)
+    REFERENCES users(username)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );
 
 -- Streaks (daily problem-solving streaks per user)
 CREATE TABLE IF NOT EXISTS streaks (
-    username    VARCHAR(50) NOT NULL REFERENCES users(username) ON DELETE CASCADE ON UPDATE CASCADE,
-    problem_id  INT         NOT NULL REFERENCES problems(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    date        DATE        NOT NULL,
-    PRIMARY KEY (username, problem_id)
+    username    VARCHAR(50) NOT NULL,
+    problem_id  BIGINT UNSIGNED NOT NULL,
+    date        DATE NOT NULL DEFAULT (UTC_DATE()),
+    PRIMARY KEY (username, problem_id),
+    CONSTRAINT streaks_users
+    FOREIGN KEY(username)
+    REFERENCES users(username)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    
+    CONSTRAINT streaks_problems
+    FOREIGN KEY(problem_id)
+    REFERENCES problems(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );
 
--- =============================================================
--- Indexes for common query patterns
--- =============================================================
 
-CREATE INDEX IF NOT EXISTS idx_submissions_username    ON submissions(username);
-CREATE INDEX IF NOT EXISTS idx_submissions_problem_id  ON submissions(problem_id);
-CREATE INDEX IF NOT EXISTS idx_submissions_verdict     ON submissions(verdict);
-CREATE INDEX IF NOT EXISTS idx_tasks_contest_id        ON tasks(contest_id);
-CREATE INDEX IF NOT EXISTS idx_test_cases_problem_id   ON test_cases(problem_id);
-CREATE INDEX IF NOT EXISTS idx_tags_problem_id         ON tags(problem_id);
-CREATE INDEX IF NOT EXISTS idx_ratings_problem_id      ON ratings(problem_id);
-CREATE INDEX IF NOT EXISTS idx_streaks_username        ON streaks(username);
-CREATE INDEX IF NOT EXISTS idx_streaks_date            ON streaks(date);
+ALTER TABLE submissions
+ADD INDEX IF NOT EXISTS idx_submissions_user (username),
+ADD INDEX IF NOT EXISTS idx_submissions_problem (problem_id);
+
+ALTER TABLE tasks
+ADD INDEX IF NOT EXISTS idx_tasks_contest (contest_id);
+
+ALTER TABLE participants
+ADD INDEX IF NOT EXISTS idx_participants_user (participant);

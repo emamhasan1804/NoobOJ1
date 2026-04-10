@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -12,7 +13,7 @@ import (
 var DB *sql.DB
 
 func Connect() {
-	fmt.Println("Connect() called") // debug line
+	fmt.Println("Connect() called")
 	var err error
 	DB, err = sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/nooboj")
 	if err != nil {
@@ -30,13 +31,23 @@ func Connect() {
 }
 
 func runSchema() {
-	schema, err := os.ReadFile("database/schema.sql")
+	schemaBytes, err := os.ReadFile("database/schema.sql")
 	if err != nil {
 		log.Fatal("Error reading schema.sql: ", err)
 	}
 
-	_, err = DB.Exec(string(schema))
-	if err != nil {
-		log.Fatal("Error executing schema: ", err)
+	schema := string(schemaBytes)
+	statements := strings.Split(schema, ";")
+
+	for _, stmt := range statements {
+		stmt = strings.TrimSpace(stmt)
+		if stmt == "" {
+			continue
+		}
+
+		_, err := DB.Exec(stmt)
+		if err != nil {
+			log.Fatalf("Error executing statement:\n%s\nError: %s", stmt, err)
+		}
 	}
 }
