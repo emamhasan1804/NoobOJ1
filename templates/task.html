@@ -1,0 +1,675 @@
+{{define "content"}}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<style>
+    .problem-shell {
+        margin: 0 8rem 1.5rem;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 250px;
+        gap: 12px;
+        color: var(--text-main);
+    }
+
+    .problem-main,
+    .problem-side-card,
+    .submit-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: none;
+        overflow: hidden;
+    }
+
+    .problem-header {
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.22);
+        background: #ffffff;
+        text-align: center;
+    }
+
+    .problem-header h1 {
+        margin: 0;
+        color: #1f3147;
+        font-size: 1.55rem;
+        font-weight: 800;
+        letter-spacing: 0;
+    }
+
+    .problem-limits {
+        margin-top: 0.42rem;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.55rem;
+    }
+
+    .limit-chip,
+    .tag-chip {
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        color: #61758c;
+        padding: 0;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    .tag-chip {
+        cursor: pointer;
+        font-family: inherit;
+        transition: color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .tag-chip:hover {
+        color: var(--accent);
+        text-decoration: none;
+    }
+
+    .author-btn {
+        margin-top: 0.58rem;
+        border: none;
+        background: transparent;
+        color: var(--accent);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 0.84rem;
+        font-weight: 700;
+    }
+
+    .problem-content {
+        padding: 0.95rem 1rem 1.05rem;
+        display: grid;
+        gap: 0.9rem;
+    }
+
+    .statement-section h2,
+    .submit-card h2,
+    .problem-side-card h2 {
+        margin: 0 0 0.45rem;
+        color: #1f3147;
+        font-size: 0.95rem;
+        letter-spacing: 0;
+    }
+
+    .text-with-enter {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        line-height: 1.58;
+        color: #26384d;
+        font-size: 0.92rem;
+    }
+
+    .sample-card {
+        border: 1px solid rgba(49, 69, 95, 0.2);
+        border-radius: 6px;
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .sample-title {
+        padding: 0.46rem 0.62rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.18);
+        background: #fbfdff;
+        color: #31455f;
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+
+    .sample-block + .sample-block {
+        border-top: 1px solid rgba(49, 69, 95, 0.18);
+    }
+
+    .sample-block-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.62rem;
+        background: #fbfdff;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.14);
+        color: #4e5d73;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .sample-copy-btn,
+    .side-btn,
+    .submit-btn {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #f5f8fc;
+        color: var(--text-main);
+        padding: 0.34rem 0.58rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .sample-copy-btn:hover,
+    .side-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+        color: var(--accent);
+    }
+
+    .sample-code {
+        display: block;
+        padding: 0.62rem;
+        background: #ffffff;
+        color: #26384d;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 0.86rem;
+    }
+
+    .submit-card {
+        margin-top: 14px;
+    }
+
+    .submit-card-head {
+        padding: 0.78rem 1rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.22);
+        background: #ffffff;
+    }
+
+    .submit-form {
+        padding: 0.9rem 1rem 1rem;
+        display: grid;
+        gap: 0.7rem;
+    }
+
+    .submit-label {
+        color: #4e5d73;
+        font-size: 0.84rem;
+        font-weight: 800;
+    }
+
+    .code-editor {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .code-editor:focus-within {
+        border-color: #9fbbdc;
+        box-shadow: 0 0 0 3px rgba(31, 78, 122, 0.11);
+    }
+
+    .submit-code {
+        width: 100%;
+        min-height: 360px;
+        margin: 0;
+        resize: vertical;
+        border: none;
+        border-radius: 0;
+        background: #ffffff;
+        color: #162335;
+        padding: 0.75rem;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 0.88rem;
+        line-height: 1.5;
+        outline: none;
+        tab-size: 4;
+    }
+
+    .CodeMirror {
+        height: 360px;
+        color: #162335;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 0.88rem;
+        line-height: 1.5;
+    }
+
+    .CodeMirror-gutters {
+        border-right: 1px solid rgba(49, 69, 95, 0.16);
+        background: #fbfdff;
+    }
+
+    .CodeMirror-linenumber {
+        color: #8a98aa;
+    }
+
+    .cm-s-default .cm-keyword {
+        color: #1f4e7a;
+        font-weight: 700;
+    }
+
+    .cm-s-default .cm-string {
+        color: #8a4a12;
+    }
+
+    .cm-s-default .cm-comment {
+        color: #6c7f93;
+        font-style: italic;
+    }
+
+    .cm-s-default .cm-number {
+        color: #246641;
+    }
+
+    .cm-s-default .cm-def,
+    .cm-s-default .cm-variable-2 {
+        color: #7a3d7c;
+    }
+
+    .submit-actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .submit-btn {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #ffffff;
+        padding: 0.42rem 0.85rem;
+    }
+
+    .submit-btn:hover {
+        background: #163c60;
+        border-color: #163c60;
+    }
+
+    .problem-sidebar {
+        display: grid;
+        gap: 14px;
+        align-content: start;
+    }
+
+    .problem-side-card {
+        padding: 0.75rem;
+    }
+
+    .contest-info-card {
+        text-align: center;
+    }
+
+    .contest-info-title {
+        margin: 0 0 0.55rem;
+        color: #1f3147;
+        font-size: 0.95rem;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .contest-end-timer {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #f8fbff;
+        color: #31455f;
+        padding: 0.34rem 0.62rem;
+        font-size: 0.84rem;
+        font-weight: 650;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    .contest-end-timer strong {
+        color: var(--accent);
+        font-weight: 700;
+    }
+
+    .side-btn {
+        width: 100%;
+        min-height: 2.25rem;
+        margin-bottom: 0.55rem;
+    }
+
+    .side-btn:last-child {
+        margin-bottom: 0;
+    }
+
+    .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.42rem;
+        line-height: 1.5;
+    }
+
+    .muted-text {
+        color: #71839a;
+        font-size: 0.86rem;
+    }
+
+    .submission-list {
+        display: grid;
+        gap: 0.5rem;
+    }
+
+    .submission-item {
+        border: 1px solid rgba(49, 69, 95, 0.16);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        padding: 0.55rem;
+        display: grid;
+        gap: 0.24rem;
+    }
+
+    .submission-item:has(.accepted) {
+        border-left: 3px solid rgba(35, 128, 77, 0.45);
+    }
+
+    .submission-item:has(.wa) {
+        border-left: 3px solid rgba(231, 50, 36, 0.38);
+    }
+
+    .submission-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .submission-link {
+        border: none;
+        background: transparent;
+        color: var(--accent);
+        padding: 0;
+        font: inherit;
+        font-size: 0.84rem;
+        font-weight: 650;
+        cursor: pointer;
+    }
+
+    .submission-time {
+        color: #61758c;
+        font-size: 0.76rem;
+        line-height: 1.35;
+    }
+
+    .verdict {
+        border-radius: 999px;
+        padding: 0.12rem 0.42rem;
+        font-size: 0.72rem;
+        font-weight: 650;
+        white-space: nowrap;
+    }
+
+    .accepted {
+        background: #edf8f2;
+        color: #246641;
+    }
+
+    .wa {
+        background: #fff5f4;
+        color: #9e3026;
+    }
+
+    @media (max-width: 1100px) {
+        .problem-shell {
+            margin: 0 1rem 1.4rem;
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .problem-shell {
+            margin: 0 0.75rem 1.2rem;
+        }
+
+        .problem-header,
+        .problem-content,
+        .submit-form,
+        .submit-card-head {
+            padding-left: 0.82rem;
+            padding-right: 0.82rem;
+        }
+
+        .submit-code {
+            min-height: 280px;
+        }
+
+        .CodeMirror {
+            height: 280px;
+        }
+    }
+    .btns{
+        margin-left: 8rem;
+        margin-bottom: 12px;
+    }
+</style>
+
+<div class="mid btns">
+    <button class="buttons" type="button" onclick="window.location.href='/contest?id={{.ID}}'">Tasks</button>
+    <button class="buttons" type="button" onclick="window.location.href='/contest/mysubmissions?id={{.ID}}'">My submissions</button>
+    <button class="buttons" type="button" onclick="window.location.href='/contest/status?id={{.ID}}'">Status</button>
+    <button class="buttons" type="button" onclick="window.location.href='/contest/standings?id={{.ID}}'">Standings</button>
+                
+</div>
+<section class="problem-shell">
+    
+    <div>
+        
+        <article class="problem-main">
+            <header class="problem-header">
+                <h1>{{.Serial}}. {{.Ptitle}}</h1>
+                <div class="problem-limits">
+                    <span class="limit-chip">Time: {{.Time}} {{if eq .Time .One}}second{{else}}seconds{{end}}</span>
+                    <span class="limit-chip">Memory: {{.Memory}} MB</span>
+                </div>
+                <button type="button" class="author-btn" data-user="{{.Author}}"
+                    onclick="window.location.href='/profile?username=' + encodeURIComponent(this.dataset.user)">
+                    Author: {{.Author}}
+                </button>
+            </header>
+
+            <div class="problem-content">
+                <section class="statement-section">
+                    <h2>Statement</h2>
+                    <div class="text-with-enter">{{.Statement}}</div>
+                </section>
+
+                <section class="statement-section">
+                    <h2>Input</h2>
+                    <div class="text-with-enter">{{.Input}}</div>
+                </section>
+
+                <section class="statement-section">
+                    <h2>Output</h2>
+                    <div class="text-with-enter">{{.Output}}</div>
+                </section>
+
+                {{if .Constraints}}
+                <section class="statement-section">
+                    <h2>Constraints</h2>
+                    <div class="text-with-enter">{{.Constraints}}</div>
+                </section>
+                {{end}}
+
+                {{if .Items}}
+                <section class="statement-section">
+                    <h2>Examples</h2>
+                    {{range .Items}}
+                    <div class="sample-card">
+                        <div class="sample-title">Sample Test {{.Number}}</div>
+                        <div class="sample-block">
+                            <div class="sample-block-head">
+                                <span>Input</span>
+                                <button type="button" class="sample-copy-btn" data-copy="{{.Input}}">Copy</button>
+                            </div>
+                            <code class="sample-code text-with-enter">{{.Input}}</code>
+                        </div>
+                        <div class="sample-block">
+                            <div class="sample-block-head">
+                                <span>Output</span>
+                                <button type="button" class="sample-copy-btn" data-copy="{{.Output}}">Copy</button>
+                            </div>
+                            <code class="sample-code text-with-enter">{{.Output}}</code>
+                        </div>
+                    </div>
+                    <br>
+                    {{end}}
+                </section>
+                {{end}}
+            </div>
+        </article>
+
+        {{if .Registered}}
+        <section class="submit-card">
+            <div class="submit-card-head">
+                <h2>Submit Solution</h2>
+            </div>
+            <form class="submit-form" action="/submit" method="POST">
+                <input type="hidden" name="problem_id" value="{{.PID}}">
+                <input type="hidden" name="contest" value="true">
+                <input type="hidden" name="ID" value={{.ID}}>
+                <label class="submit-label" for="solution-code">Source code</label>
+                <div class="code-editor">
+                    <textarea id="solution-code" class="submit-code" name="code" placeholder="Paste your C++ code here"
+                        spellcheck="false" autocapitalize="off" autocomplete="off" required></textarea>
+                </div>
+                <div class="submit-actions">
+                    <button type="submit" class="submit-btn">Submit</button>
+                </div>
+            </form>
+        </section>
+        {{else}}
+        <br>
+        <div class="submission-top">
+            <section class="wa">
+            
+            You have to be registered to submit the solution
+        </section>
+        </div>
+        
+        {{end}}
+    </div>
+
+    <aside class="problem-sidebar">
+        <div class="problem-side-card contest-info-card">
+            <h2 class="contest-info-title">{{.Name}}</h2>
+            <div class="contest-end-timer" data-end-utc="{{.EndTime}}">
+                <span>Ends in</span>
+                <strong id="contest-ends-in">--:--:--</strong>
+            </div>
+        </div>
+
+       
+
+        <div class="problem-side-card">
+            <h2>Last Submissions</h2>
+            <div class="submission-list">
+                {{if .Subs}}
+                {{range .Subs}}
+                <div class="submission-item">
+                    <div class="submission-top">
+                        <button type="button" class="submission-link" onclick="window.location.href='/submission?id={{.Submission}}'">
+                            #{{.Submission}}
+                        </button>
+                        <span class="verdict {{if eq .Verdict .Accepted}}accepted{{else}}wa{{end}}">{{.Verdict}}</span>
+                    </div>
+                    <div class="submission-time">{{.Time}}</div>
+                </div>
+                {{end}}
+                {{else}}
+                <span class="muted-text">No submissions found.</span>
+                {{end}}
+            </div>
+        </div>
+    </aside>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script>
+    document.querySelectorAll(".sample-copy-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            navigator.clipboard.writeText(this.getAttribute("data-copy") || "");
+            this.textContent = "Copied";
+            var button = this;
+            setTimeout(function () { button.textContent = "Copy"; }, 900);
+        });
+    });
+
+    document.querySelectorAll(".tag-chip").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            var query = this.getAttribute("data-query") || "";
+            if (query.charAt(0) === "*") query = query.slice(1);
+            window.location.href = "/problemset?q=" + encodeURIComponent(query) + "&sort=id_asc";
+        });
+    });
+
+    (function () {
+        var timer = document.querySelector(".contest-end-timer");
+        var output = document.getElementById("contest-ends-in");
+        if (!timer || !output) return;
+
+        function parseUTC(value) {
+            var match = String(value || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+            if (!match) return null;
+            return new Date(Date.UTC(
+                Number(match[1]),
+                Number(match[2]) - 1,
+                Number(match[3]),
+                Number(match[4]),
+                Number(match[5]),
+                Number(match[6] || 0)
+            ));
+        }
+
+        function pad(value) {
+            return String(value).padStart(2, "0");
+        }
+
+        function render() {
+            var end = parseUTC(timer.dataset.endUtc);
+            if (!end) {
+                output.textContent = "--:--:--";
+                return;
+            }
+
+            var remaining = end.getTime() - Date.now();
+            if (remaining <= 0) {
+                output.textContent = "Finished";
+                return;
+            }
+
+            var totalSeconds = Math.floor(remaining / 1000);
+            var hours = Math.floor(totalSeconds / 3600);
+            var minutes = Math.floor((totalSeconds % 3600) / 60);
+            var seconds = totalSeconds % 60;
+
+            output.textContent = hours + ":" + pad(minutes) + ":" + pad(seconds);
+        }
+
+        render();
+        setInterval(render, 1000);
+    })();
+
+    (function () {
+        var textarea = document.getElementById("solution-code");
+        if (!textarea || !window.CodeMirror) return;
+
+        var editor = CodeMirror.fromTextArea(textarea, {
+            mode: "text/x-c++src",
+            lineNumbers: true,
+            indentUnit: 4,
+            tabSize: 4,
+            indentWithTabs: false,
+            autoCloseBrackets: true,
+            lineWrapping: false,
+            viewportMargin: Infinity,
+            extraKeys: {
+                Tab: function (cm) {
+                    if (cm.somethingSelected()) {
+                        cm.indentSelection("add");
+                    } else {
+                        cm.replaceSelection("    ", "end");
+                    }
+                }
+            }
+        });
+
+        editor.on("change", function (cm) {
+            cm.save();
+        });
+    })();
+</script>
+
+{{end}}

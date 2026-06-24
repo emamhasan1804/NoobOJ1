@@ -1,140 +1,407 @@
 {{define "content"}}
-<div style="margin-left: 15rem;margin-right: 15rem; margin-top: 2rem;">
-    <div class="profile-card"
-        style="border: 1px solid rgb(0, 0, 0); height: 10rem; display: flex; align-items: center; justify-content: space-between; padding: 1rem;">
-        <div style="display: flex; align-items: center; gap: 10px;">
+<style>
+    .profile-shell {
+        margin: 0 8rem 1.5rem;
+        display: grid;
+        gap: 12px;
+        color: var(--text-main);
+    }
 
-            <div style="height: 6rem; width: 6rem; border: 2px solid rgb(68, 44, 228); margin-left: 2rem;"><img
-                    style="height: 100%; width: 100%; " src="/static/profile.png"></div>
-            <div class="name">
-                <h1 style="margin-bottom: 0px;">{{.Name}}</h1>
-                <p style="margin-top: 0px;margin-bottom: 0px; opacity: 80%;">{{.Username}} | Joined {{.Time}}</p>
+    .profile-card,
+    .profile-stat,
+    .profile-section {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: none;
+    }
+
+    .profile-card {
+        padding: 0.85rem 0.9rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .profile-identity {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        min-width: 0;
+    }
+
+    .profile-avatar {
+        width: 4.2rem;
+        height: 4.2rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #f5f8fc;
+        overflow: hidden;
+        flex: 0 0 auto;
+    }
+
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .profile-name h1 {
+        margin: 0;
+        color: #1f3147;
+        font-size: 1.12rem;
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    .profile-meta {
+        margin-top: 0.2rem;
+        color: #61758c;
+        font-size: 0.84rem;
+    }
+
+    .rank-badge {
+        display: inline-flex;
+        margin-top: 0.36rem;
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        color: #4e5d73;
+        padding: 0;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+    }
+
+    .rank-badge.intermediate {
+        background: transparent;
+        border-color: transparent;
+        color: #246641;
+    }
+
+    .rank-badge.veteran {
+        background: transparent;
+        border-color: transparent;
+        color: var(--accent);
+    }
+
+    .rank-badge.admin {
+        background: transparent;
+        border-color: transparent;
+        color: #9e3026;
+    }
+
+    .profile-action-btn,
+    .problem-chip,
+    .problem-link-btn {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #f5f8fc;
+        color: var(--text-main);
+        padding: 0.38rem 0.62rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .profile-action-btn:hover,
+    .problem-chip:hover,
+    .problem-link-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+        color: var(--accent);
+    }
+
+    .profile-stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        overflow: hidden;
+    }
+
+    .profile-stat {
+        position: relative;
+        border: none;
+        border-right: 1px solid rgba(49, 69, 95, 0.16);
+        border-radius: 0;
+        box-shadow: none;
+        padding: 0.72rem 0.8rem;
+        min-height: 4.3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.2rem;
+    }
+
+    .profile-stat:last-child {
+        border-right: none;
+    }
+
+    .profile-stat.today {
+        border-color: rgba(49, 69, 95, 0.16);
+        background: #fbfdff;
+    }
+
+    .profile-stat.today::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--accent);
+    }
+
+    .profile-stat.today .stat-label {
+        color: var(--accent);
+    }
+
+    .profile-stat.today .stat-value {
+        color: var(--accent);
+    }
+
+    .stat-label {
+        color: #61758c;
+        font-size: 0.74rem;
+        font-weight: 650;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+
+    .stat-value {
+        color: #1f3147;
+        font-size: 1.1rem;
+        font-weight: 700;
+        line-height: 1.1;
+    }
+
+    .profile-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 12px;
+        align-items: start;
+    }
+
+    .profile-section {
+        overflow: hidden;
+    }
+
+    .profile-section h2 {
+        margin: 0;
+        padding: 0.68rem 0.82rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.22);
+        color: #1f3147;
+        background: #ffffff;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    .profile-table-wrap {
+        overflow-x: auto;
+    }
+
+    .profile-table {
+        width: 100%;
+        min-width: 560px;
+        border-collapse: collapse;
+    }
+
+    .profile-table th,
+    .profile-table td {
+        padding: 0.52rem 0.58rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.22);
+        border-right: 1px solid rgba(49, 69, 95, 0.16);
+        font-size: 0.88rem;
+        vertical-align: middle;
+    }
+
+    .profile-table th:last-child,
+    .profile-table td:last-child {
+        border-right: none;
+    }
+
+    .profile-table th {
+        background: #f9fbff;
+        color: #31455f;
+        font-size: 0.8rem;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        font-weight: 650;
+    }
+
+    .profile-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .verdict-pill {
+        display: inline-flex;
+        border-radius: 999px;
+        padding: 0.12rem 0.42rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .accepted {
+        background: #edf8f2;
+        color: #246641;
+    }
+
+    .wa {
+        background: #fff5f4;
+        color: #9e3026;
+    }
+
+    .unsolved-list {
+        padding: 0.72rem 0.82rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+    }
+
+    .empty-cell,
+    .empty-text {
+        color: #71839a;
+        text-align: center;
+        font-size: 0.88rem;
+    }
+
+    .empty-cell {
+        padding: 1rem;
+    }
+
+    @media (max-width: 1100px) {
+        .profile-shell {
+            margin: 0 1rem 1.4rem;
+        }
+
+        .profile-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .profile-shell {
+            margin: 0 0.75rem 1.2rem;
+        }
+
+        .profile-stats {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .profile-stat:nth-child(2) {
+            border-right: none;
+        }
+
+        .profile-stat:nth-child(-n + 2) {
+            border-bottom: 1px solid rgba(49, 69, 95, 0.16);
+        }
+
+        .profile-card {
+            align-items: stretch;
+        }
+
+        .profile-action-btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="profile-shell">
+    <div class="profile-card">
+        <div class="profile-identity">
+            <div class="profile-avatar"><img src="/static/profile.png" alt=""></div>
+            <div class="profile-name">
+                <h1>{{.Name}}</h1>
+                <div class="profile-meta">{{.Username}} | Joined {{.Time}}</div>
                 {{if eq .Rank 0}}
-                <h6
-                    style="margin-top: 2px; border: 1px solid black; padding: 2px;color: white; background-color: black; width:fit-content ;">
-                    STARTER</h6>
+                <span class="rank-badge">Starter</span>
                 {{else if eq .Rank 1}}
-                <h6
-                    style="margin-top: 2px; border: 1px solid rgb(0, 144, 0); padding: 2px;color: white; background-color: rgb(0, 144, 0); width:fit-content ;">
-                    INTERMEDIATE</h6>
+                <span class="rank-badge intermediate">Intermediate</span>
                 {{else if eq .Rank 2}}
-                <h6
-                    style="margin-top: 2px; border: 1px solid rgb(68, 44, 228); padding: 2px;color: white; background-color: rgb(68, 44, 228); width:fit-content ;">
-                    VETERAN</h6>
+                <span class="rank-badge veteran">Veteran</span>
                 {{else}}
-                <h6
-                    style="margin-top: 2px; border: 1px solid rgb(228, 44, 44); padding: 2px;color: white; background-color: rgb(228, 44, 44); width:fit-content ;">
-                    ADMIN</h6>
+                <span class="rank-badge admin">Admin</span>
                 {{end}}
             </div>
         </div>
-        <div style="margin-right: 2rem;">
-            <a href="/submissions/user?username={{.Username}}"> <button
-                    style="font-size: 1rem; padding-top: 5px; width: 100%; padding-bottom: 5px;padding-left: 10px;padding-right: 10px;"><b>Submissions</b></button></a>
+        <button type="button" class="profile-action-btn" onclick="window.location.href='/submissions/user?username={{.Username}}'">
+            Submissions
+        </button>
+    </div>
+
+    <div class="profile-stats">
+        <div class="profile-stat">
+            <div class="stat-label">Problems Solved</div>
+            <div class="stat-value">{{.Solved}}</div>
+        </div>
+        <div class="profile-stat">
+            <div class="stat-label">Global Rank</div>
+            <div class="stat-value">{{if .GlobalRank}}#{{.GlobalRank}}{{else}}Ø{{end}}</div>
+        </div>
+        <div class="profile-stat">
+            <div class="stat-label">Accuracy</div>
+            <div class="stat-value">{{.Accuracy}}%</div>
+        </div>
+        <div class="profile-stat {{if .Today}}today{{end}}">
+            <div class="stat-label">Current Streak</div>
+            <div class="stat-value">{{.Streak}} days</div>
         </div>
     </div>
 
-    <div class="badges"
-        style="display: flex; justify-content: space-between; gap: 25px;margin-top: 40px; height: 6rem; width: 100%; font-size: small;">
-        <div class="badge"
-            style="border: 1px solid black; width: 100%; align-items: center; justify-content: center;display: flex; flex-direction: column;">
-            <p style="margin-top: 0px;margin-bottom: 0px; opacity: 80%;">PROBLEMS SOLVED</p>
-            <h1 style="margin: 0px;">{{.Solved}}</h1>
-        </div>
-        <div class="badge"
-            style="border: 1px solid black; width: 100%; align-items: center; justify-content: center;display: flex; flex-direction: column;">
-            <p style="margin-top: 0px;margin-bottom: 0px; opacity: 80%;">GLOBAL RANK</p>
-            <h1 style="margin: 0px;">{{if .GlobalRank}}#{{.GlobalRank}}{{else}}Ø{{end}}</h1>
-        </div>
-        <div class="badge"
-            style="border: 1px solid black; width: 100%; align-items: center; justify-content: center;display: flex; flex-direction: column;">
-            <p style="margin-top: 0px;margin-bottom: 0px; opacity: 80%;">ACCURACY</p>
-            <h1 style="margin: 0px;">{{.Accuracy}}%</h1>
-        </div>
-        <style>
-            .today {
-                border: 3px solid rgb(68, 44, 228) !important;
-            }
-        </style>
-        <div class="{{if .Today}}today{{else}}no{{end}}"
-            style="border: 1px solid black; width: 100%; align-items: center; justify-content: center;display: flex; flex-direction: column;">
-            <p style="margin-top: 0px;margin-bottom: 0px; opacity: 80%;">CURRENT STREAK</p>
-            <h1 style="margin: 0px; color: rgb(68, 44, 228);">{{.Streak}}
-                DAYS</h1>
-        </div>
-    </div>
-
-    <div style="margin-top: 3rem; display: flex; justify-content: space-between;">
-        <div style="width: 50%;">
-            <h3 style="margin-bottom: 3px; margin-top: 0px;">Recent submissions</h3>
-            <table border="1" style="border-collapse: collapse; width: 100%;">
-
-                <tr>
-                    <th style="text-align: left; padding: 4px;">problem</th>
-                    <th style="padding: 4px; text-align: left;">language</th>
-                    <th style="padding: 4px; text-align: left;">verdict</th>
-                </tr>
-                {{if .Recents}}
-                {{range .Recents}}
-                <tr style="text-align: left;">
-                    <td style="padding: 4px;"><a href="/problem?id={{.ID}}">{{.Problem}}</a></td>
-                    <td style="padding: 4px;">GNU G++14</td>
-                    <style>
-                        .accepted {
-                            color: rgb(5, 146, 5);
-                            padding: 4px;
-                        }
-
-                        .wa {
-                            color: rgb(218, 15, 15);
-                            padding: 4px;
-                        }
-                    </style>
-                    <td class="{{if eq .Verdict .Accepted}}accepted{{else}}wa{{end}}"><b>{{.Verdict}}</b></td>
-                </tr>
-                {{end}}
-                {{else}}
-                <tr>
-                    <td colspan="3" style="text-align: center;">No submissions found.</td>
-                </tr>
-                {{end}}
-            </table>
-        </div>
-        <div style="width: 40%;">
-            <h3 style="margin-bottom: 3px; margin-top: 0px;">Unsolved problems</h3>
-            <div style=" width: 100%;">
-                <table class="tags" style="border-collapse: collapse; width: 100%; resize: none; margin-bottom: 2rem;">
-                    {{if .Unsolved}}
-                    <tr>
-                        {{range .Unsolved}}
-                        <td style="border: 1px solid black; padding: 20px; padding-bottom: 30px;">
-                            <div style="display: flex; flex-wrap: wrap; gap: 5px;">
-
-
-                                <a href="/problem?id={{.}}">{{.}} </a>
-
-
-                            </div>
-                        </td>
-
-
-                    </tr>
-                    {{end}}
-                    {{else}}
-                    <tr>
-                        <td style="border: 1px solid black; padding: 20px;">
-                            <div style="text-align: center;">No unsolved submission found</div>
-                        </td>
-                    </tr>
-                    {{end}}
-
+    <div class="profile-grid">
+        <section class="profile-section">
+            <h2>Recent Submissions</h2>
+            <div class="profile-table-wrap">
+                <table class="profile-table">
+                    <thead>
+                        <tr>
+                            <th>Problem</th>
+                            <th>Language</th>
+                            <th>Verdict</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{if .Recents}}
+                        {{range .Recents}}
+                        <tr>
+                            <td>
+                                <button type="button" class="problem-link-btn" onclick="window.location.href='/problem?id={{.ID}}'">{{.Problem}}</button>
+                            </td>
+                            <td>GNU G++14</td>
+                            <td><span class="verdict-pill {{if eq .Verdict .Accepted}}accepted{{else}}wa{{end}}">{{.Verdict}}</span></td>
+                        </tr>
+                        {{end}}
+                        {{else}}
+                        <tr><td colspan="3" class="empty-cell">No submissions found.</td></tr>
+                        {{end}}
+                    </tbody>
                 </table>
             </div>
-        </div>
+        </section>
 
+        <section class="profile-section">
+            <h2>Unsolved Problems</h2>
+            <div class="unsolved-list">
+                {{if .Unsolved}}
+                {{range .Unsolved}}
+                <button type="button" class="problem-chip" onclick="window.location.href='/problem?id={{.}}'">{{.}}</button>
+                {{end}}
+                {{else}}
+                <span class="empty-text">No unsolved submission found.</span>
+                {{end}}
+            </div>
+        </section>
     </div>
-
-
-</div>
+</section>
 
 {{end}}

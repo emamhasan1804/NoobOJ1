@@ -1,33 +1,106 @@
 {{define "content"}}
 <style>
-    .submit-btn {
-        background: #28a745;
-        color: white;
-        font-weight: bold;
-        padding: 10px 18px;
-        font-size: 15px;
+    .create-shell {
+        margin: 0 8rem 1.5rem;
+        display: flex;
+        justify-content: center;
+        color: var(--text-main);
     }
 
-    button {
-        padding: 8px 14px;
-        border: none;
-        border-radius: 6px;
+    .create-card {
+        width: min(520px, 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+        padding: 1.2rem;
+    }
+
+    .create-card h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.16rem;
+        letter-spacing: -0.01em;
+    }
+
+    .create-card p {
+        margin: 0 0 1rem;
+        color: var(--text-soft);
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .create-form {
+        display: grid;
+        gap: 0.9rem;
+    }
+
+    .create-form label {
+        display: grid;
+        gap: 0.35rem;
+        color: #31455f;
+        font-size: 0.86rem;
+        font-weight: 650;
+    }
+
+    .create-form input {
+        width: 100%;
+        margin: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 0.62rem 0.72rem;
+        font-family: inherit;
+        font-size: 0.9rem;
+    }
+
+    .required-mark {
+        color: #b5483d;
+    }
+
+    .create-actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .submit-btn {
+        border: 1px solid var(--accent);
+        border-radius: var(--radius-md);
+        background: var(--accent);
+        color: #ffffff;
+        padding: 0.62rem 0.9rem;
+        font-family: inherit;
+        font-weight: 700;
         cursor: pointer;
-        font-size: 14px;
+    }
+
+    @media (max-width: 1100px) {
+        .create-shell {
+            margin: 0 1rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .create-shell {
+            margin: 0 0.75rem 1.5rem;
+        }
+
+        .submit-btn {
+            width: 100%;
+        }
     }
 </style>
 
-<div style="margin-left: 8rem; margin-right: 8rem; width: 40%;">
-
-    <form style="margin: 20px;" action="/new/problem" method="POST">
-        <h2>Create Problem</h2>
-        <label for="title">Problem Name <span style="color: red;">*</span></label>
-        <input type="text" name="title" id="title" required><br><br>
-
-        <div style="display: flex; justify-content: right;">
-            <button type="submit" class="submit-btn">Create Problem</button>
-        </div>
-    </form>
-</div>
-
+<section class="create-shell">
+    <div class="create-card">
+        <h1>Create Problem</h1>
+        <p>Start with the title. You can add statements, tests, tags, and editorial after creating it.</p>
+        <form class="create-form" action="/new/problem" method="POST">
+            <label for="title">Problem name <span class="required-mark">*</span>
+                <input type="text" name="title" id="title" required>
+            </label>
+            <div class="create-actions">
+                <button type="submit" class="submit-btn">Create Problem</button>
+            </div>
+        </form>
+    </div>
+</section>
 {{end}}

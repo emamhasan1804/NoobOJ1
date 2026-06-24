@@ -1,64 +1,124 @@
 {{define "content"}}
-
 <style>
-    .submit-btn {
-        background: #28a745;
-        color: white;
-        font-weight: bold;
-        padding: 10px 18px;
-        font-size: 15px;
+    .create-shell {
+        margin: 0 8rem 1.5rem;
+        display: flex;
+        justify-content: center;
+        color: var(--text-main);
     }
 
-    button {
-        padding: 8px 14px;
-        border: none;
-        border-radius: 6px;
+    .create-card {
+        width: min(560px, 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+        padding: 1.2rem;
+    }
+
+    .create-card h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.16rem;
+        letter-spacing: -0.01em;
+    }
+
+    .create-card p {
+        margin: 0 0 1rem;
+        color: var(--text-soft);
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .create-form {
+        display: grid;
+        gap: 0.9rem;
+    }
+
+    .create-form label {
+        display: grid;
+        gap: 0.35rem;
+        color: #31455f;
+        font-size: 0.86rem;
+        font-weight: 650;
+    }
+
+    .create-form input {
+        width: 100%;
+        margin: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 0.62rem 0.72rem;
+        font-family: inherit;
+        font-size: 0.9rem;
+    }
+
+    .time-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+
+    .required-mark {
+        color: #b5483d;
+    }
+
+    .timezone-note {
+        color: var(--text-soft);
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .create-actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .submit-btn {
+        border: 1px solid var(--accent);
+        border-radius: var(--radius-md);
+        background: var(--accent);
+        color: #ffffff;
+        padding: 0.62rem 0.9rem;
+        font-family: inherit;
+        font-weight: 700;
         cursor: pointer;
-        font-size: 14px;
     }
 </style>
 
-<div style="margin-left: 8rem; margin-right: 8rem; width: 40%;">
-
-    <form style="margin: 20px;" action="/new/contest" method="POST">
-        <h2>Create Contest</h2>
-        <label for="title">Contest Name <span style="color: red;">*</span></label>
-        <input type="text" name="title" id="title" required><br><br>
-
-
-        <div style="width: 50%;">
-
-            <label>Start Time <span style="color: red;">*</span></label>
+<section class="create-shell">
+    <div class="create-card">
+        <h1>Create Contest</h1>
+        <br>
+        <form class="create-form" action="/new/contest" method="POST">
+            <label for="title"><p>Title <span class="required-mark">*</span></p>
+                <input type="text" name="title" id="title" required>
+            </label>
             <input type="hidden" name="timezone" id="timezone">
+            <div class="time-grid">
+                <label for="start"><p>Start time<span class="required-mark">*</span></p>
+                    <input type="datetime-local" name="start" id="start" required>
+                </label>
+                <label for="end"><p>End time<span class="required-mark">*</span></p>
+                    <input type="datetime-local" name="end" id="end" required>
+                </label>
+            </div>
+            <span id="tz_display" class="timezone-note"></span>
+            <div class="create-actions">
+                <button type="submit" class="submit-btn">Create Contest</button>
+            </div>
+        </form>
+    </div>
+</section>
 
-            <span id="tz_display" style="margin-left:10px; color:#666;"></span>
-            <input type="datetime-local" name="start" id="start" required> <br><br>
-            <label>End Time <span style="color: red;">*</span></label>
-            <input type="datetime-local" name="end" id="end" required>
-        </div>
-
-        <div style="display: flex; justify-content: right;">
-            <button type="submit" class="submit-btn">Create Contest</button>
-        </div>
-    </form>
-</div>
-
-
-
-
-
-<!-- timezone script -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const startInput = document.getElementById("start");
         const endInput = document.getElementById("end");
-
-        // 🌍 Timezone
         const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
         document.getElementById("timezone").value = tz;
-        document.getElementById("tz_display").textContent = "(" + tz + ")";
+        document.getElementById("tz_display").textContent = "Device timezone: " + tz;
 
-        const pad = n => String(n).padStart(2, '0');
+        const pad = n => String(n).padStart(2, "0");
 
         function formatLocal(date) {
             return date.getFullYear() + "-" +
@@ -68,14 +128,12 @@
                 pad(date.getMinutes());
         }
 
-        // ⏱ now + 10 minutes
         function getNowPlus10() {
             const d = new Date();
             d.setMinutes(d.getMinutes() + 10);
             return d;
         }
 
-        // ➕ add minutes to datetime string
         function addMinutes(datetimeStr, minutes) {
             const d = new Date(datetimeStr);
             d.setMinutes(d.getMinutes() + minutes);
@@ -84,65 +142,34 @@
 
         function updateMin() {
             const now = formatLocal(getNowPlus10());
-
-            // start ≥ now+10
             startInput.min = now;
-
-            // end ≥ start+30 OR now+10
-            if (startInput.value) {
-                endInput.min = addMinutes(startInput.value, 30);
-            } else {
-                endInput.min = now;
-            }
+            endInput.min = startInput.value ? addMinutes(startInput.value, 30) : now;
         }
 
         function enforceStart() {
             const now = formatLocal(getNowPlus10());
-
-            if (startInput.value && startInput.value < now) {
-                startInput.value = now;
-            }
+            if (startInput.value && startInput.value < now) startInput.value = now;
         }
 
         function enforceEnd() {
             let minEnd = formatLocal(getNowPlus10());
-
-            if (startInput.value) {
-                minEnd = addMinutes(startInput.value, 30);
-            }
-
-            if (endInput.value && endInput.value < minEnd) {
-                endInput.value = minEnd;
-            }
+            if (startInput.value) minEnd = addMinutes(startInput.value, 30);
+            if (endInput.value && endInput.value < minEnd) endInput.value = minEnd;
         }
 
-        // ✅ Initial values (THIS fixes your picker issue)
         const now = formatLocal(getNowPlus10());
+        if (!startInput.value) startInput.value = now;
+        if (!endInput.value) endInput.value = addMinutes(now, 30);
 
-        if (!startInput.value) {
-            startInput.value = now;
-        }
-
-        if (!endInput.value) {
-            endInput.value = addMinutes(now, 30);
-        }
-
-        // ✅ Init constraints
         updateMin();
-
-        // 🔁 Live enforcement
         startInput.addEventListener("input", () => {
             enforceStart();
             updateMin();
             enforceEnd();
         });
-
         endInput.addEventListener("input", enforceEnd);
-
         startInput.addEventListener("focus", updateMin);
         endInput.addEventListener("focus", updateMin);
-
-        // ⏳ Keep it fresh if user waits
         setInterval(() => {
             updateMin();
             enforceStart();
@@ -150,5 +177,4 @@
         }, 30000);
     });
 </script>
-
 {{end}}

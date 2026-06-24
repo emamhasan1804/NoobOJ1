@@ -1,0 +1,149 @@
+{{define "content"}}
+<style>
+    .auth-shell {
+        margin: 0 8rem 1.5rem;
+        display: flex;
+        justify-content: center;
+        color: var(--text-main);
+    }
+
+    .auth-card {
+        width: min(460px, 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+        padding: 1.2rem;
+    }
+
+    .auth-card h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.18rem;
+        letter-spacing: -0.01em;
+    }
+
+    .auth-card p {
+        margin: 0 0 1rem;
+        color: var(--text-soft);
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .auth-form {
+        display: grid;
+        gap: 0.8rem;
+    }
+
+    .auth-form label {
+        display: grid;
+        gap: 0.3rem;
+        color: #31455f;
+        font-size: 0.86rem;
+        font-weight: 650;
+    }
+
+    .auth-form input {
+        width: 100%;
+        margin: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 0.62rem 0.72rem;
+        font-family: inherit;
+        font-size: 0.95rem;
+    }
+
+    .otp-input {
+        text-align: center;
+        letter-spacing: 0.24rem;
+        font-weight: 800;
+    }
+
+    .auth-submit,
+    .auth-link-btn {
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-family: inherit;
+        font-weight: 700;
+    }
+
+    .auth-submit {
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: #ffffff;
+        padding: 0.62rem 0.9rem;
+    }
+
+    .auth-link-btn {
+        border: 1px solid var(--border);
+        background: #ffffff;
+        color: var(--accent);
+        padding: 0.5rem 0.75rem;
+        font-size: 0.86rem;
+    }
+
+    .auth-link-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+    }
+
+    .auth-alert {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 0.62rem 0.72rem;
+        margin-bottom: 0.9rem;
+        font-size: 0.86rem;
+        line-height: 1.45;
+    }
+
+    .auth-alert.error {
+        background: #fff5f4;
+        border-color: rgba(231, 50, 36, 0.45);
+        color: #9e3026;
+    }
+
+    .auth-alert.success {
+        background: #edf8f2;
+        border-color: rgba(35, 128, 77, 0.35);
+        color: #246641;
+    }
+
+    .auth-foot {
+        margin-top: 0.9rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    @media (max-width: 1100px) {
+        .auth-shell {
+            margin: 0 1rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .auth-shell {
+            margin: 0 0.75rem 1.5rem;
+        }
+    }
+</style>
+
+<section class="auth-shell">
+    <div class="auth-card">
+        <h1>Verify your email</h1>
+        <p>Enter your email and the 6-digit OTP. The code works for 10 minutes.</p>
+        {{if .Error}}<div class="auth-alert error">{{.Error}}</div>{{end}}
+        {{if .Message}}<div class="auth-alert success">{{.Message}}</div>{{end}}
+        <form class="auth-form" action="/verify-otp" method="POST">
+            <!-- <label for="email">Email -->
+                <input type="hidden" name="email" id="email" value="{{.Email}}" autocomplete="email" required>
+            </label>
+            <label for="otp">OTP code
+                <input class="otp-input" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" name="otp" id="otp" autocomplete="one-time-code" required>
+            </label>
+            <button type="submit" class="auth-submit">Confirm account</button>
+        </form>
+        <div class="auth-foot">
+            <button type="button" class="auth-link-btn" onclick="window.location.href='/register'">Start again</button>
+        </div>
+    </div>
+</section>
+{{end}}

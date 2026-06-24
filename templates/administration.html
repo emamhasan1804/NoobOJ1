@@ -1,270 +1,638 @@
 {{define "content"}}
 <style>
-    /* Background blur overlay */
+    .admin-shell {
+        margin: 0 8rem 1.5rem;
+        display: grid;
+        gap: 14px;
+        color: var(--text-main);
+    }
+
+    .admin-toolbar,
+    .admin-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+    }
+
+    .admin-toolbar {
+        padding: 0.78rem 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .admin-title h1 {
+        margin: 0;
+        font-size: 1.08rem;
+        letter-spacing: 0;
+    }
+
+    .admin-tabs {
+        display: inline-flex;
+        gap: 0.45rem;
+        flex-wrap: wrap;
+    }
+
+    .admin-tab {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #f5f8fc;
+        color: var(--text-main);
+        padding: 0.38rem 0.66rem;
+        font-size: 0.84rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .admin-tab:hover,
+    .admin-tab.active-btn {
+        background: var(--accent-soft);
+        color: var(--accent);
+        border-color: #c7d8ec;
+    }
+
+    .admin-panel {
+        display: none;
+    }
+
+    .admin-card {
+        overflow: hidden;
+    }
+
+    .admin-card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 0.76rem 0.9rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.22);
+        background: #ffffff;
+    }
+
+    .admin-card-head h2 {
+        margin: 0;
+        color: #1f3147;
+        font-size: 1.02rem;
+    }
+
+    .admin-filter-form {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+    }
+
+    .admin-filter-form select {
+        width: auto;
+        min-width: 9.5rem;
+        margin: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        color: var(--text-main);
+        padding: 0.4rem 0.55rem;
+        font-size: 0.84rem;
+        font-family: inherit;
+    }
+
+    .filter-btn,
+    .filter-clear-btn {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #f5f8fc;
+        color: var(--text-main);
+        padding: 0.4rem 0.62rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        text-decoration: none;
+    }
+
+    .filter-btn:hover,
+    .filter-clear-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+        color: var(--accent);
+    }
+
+    .create-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.42rem;
+        border: 1px solid var(--accent);
+        border-radius: var(--radius-md);
+        background: var(--accent);
+        color: #ffffff;
+        padding: 0.4rem 0.66rem;
+        font-size: 0.84rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        box-shadow: none;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .create-btn:hover {
+        background: #163c60;
+        border-color: #163c60;
+    }
+
+    .plus {
+        font-size: 1rem;
+        line-height: 1;
+    }
+
+    .admin-table-wrap {
+        overflow-x: auto;
+    }
+
+    .admin-table {
+        width: 100%;
+        min-width: 720px;
+        border-collapse: collapse;
+    }
+
+    .admin-table th,
+    .admin-table td {
+        padding: 0.58rem 0.62rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.22);
+        border-right: 1px solid rgba(49, 69, 95, 0.16);
+        vertical-align: middle;
+        font-size: 0.88rem;
+    }
+
+    .admin-table th:last-child,
+    .admin-table td:last-child {
+        border-right: none;
+    }
+
+    .admin-table th {
+        text-align: center;
+        background: #f9fbff;
+        color: #31455f;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .admin-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .admin-id-cell,
+    .admin-action-cell,
+    .admin-status-cell,
+    .admin-visibility-cell {
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .admin-id-cell {
+        width: 6.5rem;
+        color: #61758c;
+        font-weight: 700;
+    }
+
+    .admin-name-cell {
+        color: #1a2f46;
+        font-weight: 700;
+        word-break: break-word;
+    }
+
+    .contest-status-pill {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-width: 5.6rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 0.24rem 0.58rem;
+        background: #f8fbff;
+        color: #52657d;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .contest-status-pill.running {
+        background: #edf8f2;
+        border-color: rgba(35, 128, 77, 0.35);
+        color: #246641;
+    }
+
+    .contest-status-pill.upcoming {
+        background: #f1f6ff;
+        border-color: #c7d8ec;
+        color: #2f5f96;
+    }
+
+    .contest-status-pill.past {
+        background: #f5f8fc;
+        color: #6a7789;
+    }
+
+    .admin-row-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 4.25rem;
+        min-height: 2rem;
+        margin: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #f5f8fc;
+        color: var(--text-main);
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .admin-row-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+    }
+
+    .admin-row-btn.danger {
+        color: #9e3026;
+    }
+
+    .admin-row-btn.danger:hover {
+        background: #fff5f4;
+        border-color: rgba(231, 50, 36, 0.45);
+    }
+
+    .visibility-btn {
+        min-width: 6.3rem;
+        border: 1px solid transparent;
+        border-radius: var(--radius-md);
+        padding: 0.38rem 0.6rem;
+        color: var(--text-main);
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .visibility-btn.unpublish {
+        background: #fff5f4;
+        border-color: rgba(231, 50, 36, 0.45);
+        color: #9e3026;
+    }
+
+    .visibility-btn.publish {
+        background: #edf8f2;
+        border-color: rgba(35, 128, 77, 0.35);
+        color: #246641;
+    }
+
+    .visibility-btn:disabled {
+        background: #f1f4f8;
+        border-color: #d8e0ea;
+        color: #8a98aa;
+        cursor: not-allowed;
+        opacity: 0.85;
+    }
+
+    .empty-cell {
+        text-align: center;
+        color: #71839a;
+        padding: 1rem;
+    }
+
     .overlay {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        backdrop-filter: blur(6px);
-        background: rgba(0, 0, 0, 0.2);
+        inset: 0;
         display: none;
         justify-content: center;
         align-items: center;
+        z-index: 9999;
+        padding: 1rem;
+        backdrop-filter: blur(4px);
+        background: rgba(22, 35, 53, 0.16);
     }
 
-    .buttons form {
-        flex: 1;
-        display: flex;
-    }
-
-    .buttons form button {
-        width: 100%;
-    }
-
-    /* Popup box */
     .popup {
-        background: #f2f2f7;
-        padding: 20px 25px;
-        border-radius: 16px;
-        width: 300px;
-        text-align: center;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        width: min(380px, 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        padding: 0;
+        text-align: left;
+        overflow: hidden;
+        box-shadow: var(--shadow-card), 0 18px 38px rgba(34, 53, 80, 0.14);
     }
 
-    /* Title */
+    .popup-head {
+        display: flex;
+        align-items: center;
+        gap: 0.62rem;
+        padding: 0.82rem 1rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.22);
+        background: #fbfdff;
+    }
+
+    .popup-mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: var(--radius-md);
+        background: #f5f8fc;
+        border: 1px solid var(--border);
+        color: var(--accent);
+        font-size: 0.95rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
     .popup h3 {
         margin: 0;
-        font-size: 17px;
-        font-weight: 600;
+        color: #1f3147;
+        font-size: 0.96rem;
+        line-height: 1.25;
     }
 
-    /* Description */
     .popup p {
-        font-size: 13px;
-        color: #555;
-        margin: 10px 0 20px;
+        margin: 0;
+        padding: 0.9rem 1rem;
+        color: #61758c;
+        font-size: 0.84rem;
+        line-height: 1.45;
     }
 
-    /* Buttons container */
     .buttons {
         display: flex;
-        justify-content: space-between;
-        gap: 10px;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        padding: 0 1rem 1rem;
     }
 
-    /* Buttons */
     .btn {
-        flex: 1;
-        padding: 8px;
-        border-radius: 10px;
-        border: none;
-        font-size: 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 0.42rem 0.72rem;
+        font-size: 0.84rem;
+        font-weight: 700;
         cursor: pointer;
+        font-family: inherit;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
     }
 
-    /* Cancel */
     .cancel {
-        background: #e5e5ea;
+        background: #f5f8fc;
+        color: var(--text-main);
     }
 
-    /* Delete (blue like macOS) */
+    .cancel:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+    }
+
     .delete {
-        background: #007aff;
-        color: white;
+        background: rgb(231, 50, 36);
+        border-color: rgb(231, 50, 36);
+        color: #ffffff;
+    }
+
+    .delete:hover {
+        background: #b9362b;
+        border-color: #b9362b;
+    }
+
+    #toast {
+        visibility: hidden;
+        min-width: 220px;
+        position: fixed;
+        z-index: 9999;
+        right: 20px;
+        bottom: 30px;
+        border-radius: var(--radius-md);
+        background: #162335;
+        color: #ffffff;
+        padding: 12px 16px;
+        text-align: center;
+        font-size: 14px;
+        box-shadow: 0 10px 26px rgba(34, 53, 80, 0.18);
+    }
+
+    @media (max-width: 1100px) {
+        .admin-shell {
+            margin: 0 1rem 1.4rem;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .admin-shell {
+            margin: 0 0.75rem 1.2rem;
+        }
+
+        .admin-toolbar,
+        .admin-card-head {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .admin-tabs {
+            width: 100%;
+        }
+
+        .admin-tab {
+            flex: 1;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            padding: 0.56rem 0.5rem;
+            font-size: 0.84rem;
+        }
     }
 </style>
-<div style="margin-left: 8rem; margin-right: 8rem;">
-    <button id="manageContestsBtn" class="active-btn">Manage Contests</button>
-    <button id="manageProblemsBtn">Manage Problems</button>
 
-    <div style="display: flex;flex-direction: column;align-items: center;justify-content: center;">
-
-        <div class="contests" style="display: block; width: 70%;">
-            <div style="height: 8rem; width: 100%; display: flex; align-items: center; justify-content: right;">
-                <button class="create-btn" onclick="window.location.href='/new/contest'">
-                    <span class="plus">+</span> Contest
-                </button>
-            </div>
-            <table border="1" style="border-collapse: collapse; color: rgb(74, 74, 74); width: 100%;">
-                <tr>
-                    <th style="width: 18%;">#</th>
-                    <th>Title</th>
-                    <th colspan="2"> </th>
-                </tr>
-                {{if .Contests}}
-                {{range .Contests}}
-                <tr>
-                    <td style="padding: 7px;">{{.ID}}</td>
-                    <td style="padding: 7px;">{{.Title}}</td>
-                    <td style="width: 8%; text-align: center; vertical-align: middle; padding-top: 5px;"><a
-                            href="/edit/contest?id={{.ID}}"><img style="height: 1.3rem;" src="static/edit.webp"></a>
-                    </td>
-                    <td style="width: 8%; text-align: center; vertical-align: middle; padding-top: 5px;"><a
-                            href="/delete/problem?id={{.ID}}"><img style="height: 1.3rem;" src="static/delete.png"></a>
-                    </td>
-                </tr>
-                {{end}}
-                {{else}}
-                <tr>
-                    <td colspan="4" style="text-align: center;">No data found.</td>
-                </tr>
-                {{end}}
-            </table>
+<section class="admin-shell">
+    <div class="admin-toolbar">
+        <div class="admin-title">
+            <h1>Administration</h1>
         </div>
-
-        <div class="problems" style="display: none; width: 70%;">
-            <div style="height: 8rem; width: 100%; display: flex; align-items: center; justify-content: right;">
-                <style>
-                    .create-btn {
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 8px;
-
-                        background: #007aff;
-                        color: white;
-
-                        padding: 10px 18px;
-                        border-radius: 12px;
-
-                        text-decoration: none;
-                        font-weight: 500;
-                        font-size: 15px;
-
-                        border: none;
-                        transition: all 0.2s ease;
-                    }
-
-                    .create-btn .plus {
-                        font-size: 18px;
-                        font-weight: 600;
-                    }
-
-                    .create-btn:hover {
-                        background: #0066d6;
-                    }
-
-                    .create-btn:active {
-                        transform: scale(0.97);
-                    }
-                </style>
-                <button class="create-btn" onclick="window.location.href='/new/problem'">
-                    <span class="plus">+</span> Problem
-                </button>
-            </div>
-            <table border="1" style="border-collapse: collapse; color: rgb(74, 74, 74); width: 100%;">
-                <tr>
-                    <th style="width: 18%;">#</th>
-                    <th>Name</th>
-                    <th colspan="3"> </th>
-                </tr>
-                {{if .Problems}}
-                {{range .Problems}}
-                <tr>
-                    <td style="padding: 7px;"><a href="/problem?id={{.ID}}">{{.ID}}</a></td>
-                    <td style="padding: 7px;"><a style="padding-right: 3px;" href="/problem?id={{.ID}}">{{.Title}}</a>
-                    </td>
-                    <td style="width: 8%; text-align: center; vertical-align: middle; padding-top: 5px;"><a
-                            href="/edit/problem?id={{.ID}}"><img style="height: 1.3rem;" src="static/edit.webp"></a>
-                    </td>
-                    <td style="width: 8%; text-align: center; vertical-align: middle; padding-top: 5px;">
-                        <button style="margin: 0px; padding: 0px;" onclick="openPopup()"><img style="height: 1.3rem;"
-                                src="static/delete.png"></button>
-
-                        <div class="overlay" id="overlay">
-                            <div class="popup">
-                                <h3>Delete problem "{{.Title}}" ?</h3>
-                                <p>Once deleted it can't be undone</p>
-
-                                <div class="buttons">
-                                    <button class="btn cancel" onclick="closePopup()">Cancel</button>
-                                    <form action="/delete/problem" method="POST">
-                                        <input type="hidden" name="id" value="{{.ID}}">
-                                        <button class="btn delete" type="submit">Delete</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-
-                        <script>
-                            function openPopup() {
-                                document.getElementById("overlay").style.display = "flex";
-                            }
-
-                            function closePopup() {
-                                document.getElementById("overlay").style.display = "none";
-                            }
-
-                            function deleteAction() {
-                                alert("Deleted");
-                                closePopup();
-                            }
-                        </script>
-                    </td>
-                    {{if .Visibility}}
-                    <td
-                        style="width: 7rem; padding: 0; margin: 0; background-color: rgb(231,50,36); color: white; text-align: center; vertical-align: middle; padding-top: 5px;">
-                        <button onclick="toggleVisibility({{.ID}})"
-                            style="color: white; font-weight: bold; font-size: small;">
-                            Unpublish
-                        </button>
-                    </td>
-                    {{else}}
-                    <td
-                        style="width: 7rem; padding: 0; margin: 0; background-color: rgb(5, 146, 5); color: white; text-align: center; vertical-align: middle; padding-top: 5px;">
-                        <button onclick="toggleVisibility({{.ID}})"
-                            style="color: white; font-weight: bold; font-size: small;">
-                            Publish
-                        </button>
-                    </td>
-                    {{end}}
-                </tr>
-                {{end}}
-                {{else}}
-                <tr>
-                    <td colspan="5" style="text-align: center;">No data found.</td>
-                </tr>
-                {{end}}
-            </table>
+        <div class="admin-tabs" aria-label="Administration sections">
+            <button type="button" id="manageContestsBtn" class="admin-tab active-btn">Manage Contests</button>
+            <button type="button" id="manageProblemsBtn" class="admin-tab">Manage Problems</button>
         </div>
-
     </div>
- <div id="toast" style="
-    visibility: hidden;
-    min-width: 220px;
-    background-color: #333;
-    color: #fff;
-    text-align: center;
-    border-radius: 8px;
-    padding: 12px 16px;
-    position: fixed;
-    z-index: 9999;
-    right: 20px;
-    bottom: 30px;
-    font-size: 14px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-">
-</div>
-</div>
 
+    <div class="contests admin-panel" style="display: block;">
+        <div class="admin-card">
+            <div class="admin-card-head">
+                <div>
+                    <h2>Contests</h2>
+                </div>
+                <form class="admin-filter-form" method="get" action="/administration">
+                    <input type="hidden" name="tab" value="contest">
+                    <select name="contest_visibility" aria-label="Contest visibility filter">
+                        <option value="all" {{if eq .ContestVisibility "all"}}selected{{end}}>All visibility</option>
+                        <option value="published" {{if eq .ContestVisibility "published"}}selected{{end}}>Published</option>
+                        <option value="unpublished" {{if eq .ContestVisibility "unpublished"}}selected{{end}}>Unpublished</option>
+                    </select>
+                    <select name="contest_time" aria-label="Contest time filter">
+                        <option value="all" {{if eq .ContestTime "all"}}selected{{end}}>All time</option>
+                        <option value="running" {{if eq .ContestTime "running"}}selected{{end}}>Running</option>
+                        <option value="upcoming" {{if eq .ContestTime "upcoming"}}selected{{end}}>Upcoming</option>
+                        <option value="past" {{if eq .ContestTime "past"}}selected{{end}}>Past</option>
+                    </select>
+                    <button type="submit" class="filter-btn">Filter</button>
+                    <button type="button" class="filter-clear-btn" onclick="window.location.href='/administration?tab=contest'">Clear</button>
+                    <button type="button" class="create-btn" onclick="window.location.href='/new/contest'">
+                        <span class="plus">+</span> Contest
+                    </button>
+                </form>
+            </div>
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Edit</th>
+                            <th>Delete</th>
+                            <th>Visibility</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{if .Contests}}
+                        {{range .Contests}}
+                        <tr class="js-admin-contest-row" data-start-utc="{{.StartTime}}" data-end-utc="{{.EndTime}}">
+                            <td class="admin-id-cell">{{.ID}}</td>
+                            <td class="admin-name-cell">{{.Title}}</td>
+                            <td class="admin-status-cell">
+                                <span class="contest-status-pill js-contest-status">--</span>
+                            </td>
+                            <td class="admin-action-cell">
+                                <button type="button" class="admin-row-btn" onclick="window.location.href='/edit/contest?id={{.ID}}'">
+                                    Edit
+                                </button>
+                            </td>
+                            <td class="admin-action-cell">
+                                <button type="button" class="admin-row-btn danger" onclick="openPopup('contest-{{.ID}}')">
+                                    Delete
+                                </button>
+                                <div class="overlay" id="overlay-contest-{{.ID}}">
+                                    <div class="popup">
+                                        <div class="popup-head">
+                                            <span class="popup-mark">!</span>
+                                            <h3>Delete contest "{{.Title}}"?</h3>
+                                        </div>
+                                        <p>This action cannot be undone. The contest will be removed permanently.</p>
+                                        <div class="buttons">
+                                            <button type="button" class="btn cancel" onclick="closePopup('contest-{{.ID}}')">Cancel</button>
+                                            <button type="button" class="btn delete" onclick="handleDelete({{.ID}}, 'contest')">Delete</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="admin-visibility-cell">
+                                <button type="button" onclick="toggleVisibility({{.ID}}, 'contest')" class="visibility-btn {{if .Visibility}}unpublish{{else}}publish{{end}}">
+                                    {{if .Visibility}}Unpublish{{else}}Publish{{end}}
+                                </button>
+                            </td>
+                        </tr>
+                        {{end}}
+                        {{else}}
+                        <tr><td colspan="6" class="empty-cell">No contests found.</td></tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
+    <div class="problems admin-panel" style="display: none;">
+        <div class="admin-card">
+            <div class="admin-card-head">
+                <div>
+                    <h2>Problems</h2>
+                </div>
+                <form class="admin-filter-form" method="get" action="/administration">
+                    <input type="hidden" name="tab" value="problem">
+                    <select name="problem_visibility" aria-label="Problem visibility filter">
+                        <option value="all" {{if eq .ProblemVisibility "all"}}selected{{end}}>All visibility</option>
+                        <option value="published" {{if eq .ProblemVisibility "published"}}selected{{end}}>Published</option>
+                        <option value="unpublished" {{if eq .ProblemVisibility "unpublished"}}selected{{end}}>Unpublished</option>
+                    </select>
+                    <button type="submit" class="filter-btn">Filter</button>
+                    <button type="button" class="filter-clear-btn" onclick="window.location.href='/administration?tab=problem'">Clear</button>
+                    <button type="button" class="create-btn" onclick="window.location.href='/new/problem'">
+                        <span class="plus">+</span> Problem
+                    </button>
+                </form>
+            </div>
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Edit</th>
+                            <th>Delete</th>
+                            <th>Visibility</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{if .Problems}}
+                        {{range .Problems}}
+                        <tr>
+                            <td class="admin-id-cell">{{.ID}}</td>
+                            <td class="admin-name-cell">{{.Title}}</td>
+                            <td class="admin-action-cell">
+                                <button type="button" class="admin-row-btn" onclick="window.location.href='/edit/problem?id={{.ID}}'">
+                                    Edit
+                                </button>
+                            </td>
+                            <td class="admin-action-cell">
+                                <button type="button" class="admin-row-btn danger" onclick="openPopup('problem-{{.ID}}')">
+                                    Delete
+                                </button>
+                                <div class="overlay" id="overlay-problem-{{.ID}}">
+                                    <div class="popup">
+                                        <div class="popup-head">
+                                            <span class="popup-mark">!</span>
+                                            <h3>Delete problem "{{.Title}}"?</h3>
+                                        </div>
+                                        <p>This action cannot be undone. The problem will be removed permanently.</p>
+                                        <div class="buttons">
+                                            <button type="button" class="btn cancel" onclick="closePopup('problem-{{.ID}}')">Cancel</button>
+                                            <button type="button" class="btn delete" onclick="handleDelete({{.ID}}, 'problem')">Delete</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="admin-visibility-cell">
+                                <button type="button" onclick="toggleVisibility({{.ID}}, 'problem')" class="visibility-btn {{if .Visibility}}unpublish{{else}}publish{{end}}">
+                                    {{if .Visibility}}Unpublish{{else}}Publish{{end}}
+                                </button>
+                            </td>
+                        </tr>
+                        {{end}}
+                        {{else}}
+                        <tr><td colspan="5" class="empty-cell">No problems found.</td></tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-<style>
-    button {
-        background: none;
-        border: none;
-        font-size: 18px;
-        padding: 8px 16px;
-        cursor: pointer;
-        outline: none;
-    }
-
-    .active-btn {
-        border-bottom: 3px solid #6c6c6c;
-        font-weight: 600;
-    }
-</style>
+    <div id="toast"></div>
+</section>
 
 <script>
     const contestsDiv = document.querySelector('.contests');
@@ -286,10 +654,8 @@
         }
     }
 
-    // Check query parameter on page load
     const urlParams = new URLSearchParams(window.location.search);
-    const tab = urlParams.get('tab'); // ?tab=problem or ?tab=contest
-    showTab(tab || 'contest'); // default to contest
+    showTab(urlParams.get('tab') || 'contest');
 
     manageContestsBtn.addEventListener('click', () => {
         showTab('contest');
@@ -300,44 +666,103 @@
         showTab('problem');
         history.replaceState(null, '', '/administration?tab=problem');
     });
-</script>
-<script>
-function showToast(message, isError = false) {
-    const toast = document.getElementById("toast");
-    toast.innerText = message;
-    toast.style.backgroundColor = isError ? "#e74c3c" : "#333";
-    toast.style.visibility = "visible";
 
-    setTimeout(() => {
-        toast.style.visibility = "hidden";
-    }, 2000);
-}
+    function openPopup(id) { document.getElementById("overlay-" + id).style.display = "flex"; }
+    function closePopup(id) { document.getElementById("overlay-" + id).style.display = "none"; }
 
-function toggleVisibility(id) {
-    fetch("/admin/toggle", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: "id=" + id
-    })
-    .then(res => {
-        if (!res.ok) throw new Error("failed");
-        sessionStorage.setItem("toast", "Updated successfully");
-
-        location.reload();
-    })
-    .catch(() => {
-        sessionStorage.setItem("toast", "Update failed");
-        location.reload();
-    });
-}
-window.addEventListener("load", () => {
-    const msg = sessionStorage.getItem("toast");
-    if (msg) {
-        showToast(msg);
-        sessionStorage.removeItem("toast");
+    function showToast(message, isError = false) {
+        const toast = document.getElementById("toast");
+        toast.innerText = message;
+        toast.style.backgroundColor = isError ? "rgb(231, 50, 36)" : "#162335";
+        toast.style.visibility = "visible";
+        setTimeout(() => { toast.style.visibility = "hidden"; }, 2000);
     }
-});
+
+    function handleDelete(id, type) {
+        const url = "/delete/" + type;
+        fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: "id=" + id
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("failed");
+            sessionStorage.setItem("toast", "Deleted successfully");
+            location.reload();
+        })
+        .catch(() => {
+            closePopup(type + "-" + id);
+            showToast("Access Denied", true);
+        });
+    }
+
+    function toggleVisibility(id, type) {
+        const url = "/toggle/" + type;
+        fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: "id=" + id
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("failed");
+            sessionStorage.setItem("toast", "Updated successfully");
+            location.reload();
+        })
+        .catch(() => {
+            showToast("Access Denied", true);
+        });
+    }
+
+    function parseUTC(value) {
+        const match = String(value || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+        if (!match) return null;
+        return new Date(Date.UTC(
+            Number(match[1]),
+            Number(match[2]) - 1,
+            Number(match[3]),
+            Number(match[4]),
+            Number(match[5]),
+            Number(match[6] || 0)
+        ));
+    }
+
+    function updateContestStatuses() {
+        const now = Date.now();
+        document.querySelectorAll(".js-admin-contest-row").forEach(row => {
+            const start = parseUTC(row.dataset.startUtc);
+            const end = parseUTC(row.dataset.endUtc);
+            const pill = row.querySelector(".js-contest-status");
+            if (!start || !end || !pill) return;
+
+            pill.classList.remove("running", "upcoming", "past");
+            if (now < start.getTime()) {
+                pill.textContent = "Upcoming";
+                pill.classList.add("upcoming");
+            } else if (now <= end.getTime()) {
+                pill.textContent = "Running";
+                pill.classList.add("running");
+            } else {
+                pill.textContent = "Past";
+                pill.classList.add("past");
+            }
+
+            const unpublishButton = row.querySelector(".visibility-btn.unpublish");
+            if (unpublishButton) {
+                const hasStarted = now >= start.getTime();
+                unpublishButton.disabled = hasStarted;
+                unpublishButton.title = hasStarted ? "Contest already started" : "";
+            }
+        });
+    }
+
+    window.addEventListener("load", () => {
+        const msg = sessionStorage.getItem("toast");
+        if (msg) {
+            showToast(msg);
+            sessionStorage.removeItem("toast");
+        }
+        updateContestStatuses();
+        setInterval(updateContestStatuses, 30000);
+    });
 </script>
 {{end}}

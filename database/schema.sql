@@ -8,7 +8,23 @@ CREATE TABLE IF NOT EXISTS users (
     created_on  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Profiles (picture path per user)
+-- Registration OTPs
+CREATE TABLE IF NOT EXISTS registration_otps (
+    id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    username      VARCHAR(50)  NOT NULL,
+    name          VARCHAR(100) NOT NULL,
+    email         VARCHAR(100) NOT NULL,
+    password_hash MEDIUMTEXT   NOT NULL,
+    otp_hash      VARCHAR(255) NOT NULL,
+    attempts      INT          NOT NULL DEFAULT 0,
+    created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at    DATETIME     NOT NULL,
+    UNIQUE KEY uq_registration_otps_username (username),
+    UNIQUE KEY uq_registration_otps_email (email),
+    KEY idx_registration_otps_expires_at (expires_at)
+);
+
+-- Profiles
 CREATE TABLE IF NOT EXISTS profiles (
     username    VARCHAR(50),
     path        VARCHAR(255) NOT NULL,
@@ -138,11 +154,12 @@ CREATE TABLE IF NOT EXISTS contests (
     visibility	BOOLEAN  NOT NULL DEFAULT FALSE
 );
 
--- Tasks (problems assigned to a contest with a score)
+-- Tasks
 CREATE TABLE IF NOT EXISTS tasks (
     problem_id  BIGINT UNSIGNED,
     contest_id  BIGINT UNSIGNED,
     score       INT NOT NULL DEFAULT 1000,
+    serial      CHAR(1) NOT NULL,
     PRIMARY KEY(problem_id,contest_id),
     CONSTRAINT tasks_problems
     FOREIGN KEY(problem_id)
@@ -157,7 +174,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     ON UPDATE CASCADE
 );
 
--- Participants (users enrolled in a contest)
+-- Participants
 CREATE TABLE IF NOT EXISTS participants (
     contest_id  BIGINT UNSIGNED,
     participant    VARCHAR(50),
@@ -176,7 +193,7 @@ CREATE TABLE IF NOT EXISTS participants (
     ON UPDATE CASCADE
 );
 
--- Authors (users who authored / set a contest)
+-- Authors
 CREATE TABLE IF NOT EXISTS authors (
     contest_id  BIGINT UNSIGNED,
     author    VARCHAR(50),
@@ -219,7 +236,7 @@ CREATE TABLE IF NOT EXISTS submissions (
     ON UPDATE CASCADE
 );
 
--- Streaks (daily problem-solving streaks per user)
+-- Streaks
 CREATE TABLE IF NOT EXISTS streaks (
     username    VARCHAR(50) NOT NULL,
     problem_id  BIGINT UNSIGNED NOT NULL,
@@ -248,3 +265,23 @@ ADD INDEX IF NOT EXISTS idx_tasks_contest (contest_id);
 
 ALTER TABLE participants
 ADD INDEX IF NOT EXISTS idx_participants_user (participant);
+
+ALTER TABLE registration_otps
+ADD INDEX IF NOT EXISTS idx_registration_otps_expires_at (expires_at);
+
+
+ALTER TABLE contests
+ADD CONSTRAINT IF NOT EXISTS chk_contest_time
+CHECK (end_time > start_time);
+SET GLOBAL event_scheduler = ON;
+
+CREATE EVENT IF NOT EXISTS update_problem_visibility
+ON SCHEDULE EVERY 1 MINUTE
+STARTS NOW()
+DO
+    UPDATE Problem p
+    JOIN Task t ON p.problem_id = t.problem_id
+    JOIN Contest c ON t.contest_id = c.contest_id
+    SET p.visibility = TRUE
+    WHERE c.end_time <= UTC_TIMESTAMP()
+    AND p.visibility = FALSE;

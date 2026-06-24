@@ -1,70 +1,645 @@
 {{define "content"}}
 <style>
-    .table-style {
-        margin-left: 8rem;
-        margin-right: 8rem;
-        display: flex;
-        flex-direction: column;
+    .contest-shell {
+        margin: 0 8rem 1.5rem;
+        display: grid;
+        gap: 14px;
+        color: var(--text-main);
+    }
+
+    .contest-toolbar {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+        padding: 0.85rem 1rem;
+        display: grid;
+        gap: 0.65rem;
+    }
+
+    .contest-search-form {
+        display: grid;
+        grid-template-columns: minmax(300px, 1fr);
+        gap: 0.65rem;
         align-items: center;
-        justify-content: center;
+        border: 1px solid rgba(49, 69, 95, 0.14);
+        border-radius: 10px;
+        background: #f7faff;
+        padding: 0.55rem;
     }
 
-    table {
+    .contest-search-group {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        align-items: stretch;
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        box-shadow: 0 1px 0 rgba(34, 53, 80, 0.03);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .contest-search-group:focus-within {
+        border-color: #9fbbdc;
+        box-shadow: 0 0 0 3px rgba(31, 78, 122, 0.11);
+    }
+
+    .contest-search-wrap {
+        position: relative;
+        min-width: 0;
+    }
+
+    .contest-search-wrap input.contest-search-input[type="text"] {
+        display: block;
         width: 100%;
-        table-layout: fixed;
-        word-wrap: break-word;
-        /* Prevents long text from breaking the layout */
+        height: 2.45rem;
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+        background: #ffffff;
+        color: var(--text-main);
+        padding: 0.42rem 0.75rem 0.42rem 2.05rem;
+        font-size: 0.86rem;
+        font-family: inherit;
+        outline: none;
+        box-shadow: none;
     }
 
-    table td,
-    table th {
-        padding: 5px;
-        font-size: large;
+    .contest-search-icon {
+        position: absolute;
+        left: 0.72rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #74869d;
+        font-size: 0.88rem;
+        pointer-events: none;
+    }
+
+    .contest-open-button{
+        display: inline-flex;
+        align-items: center;
+        gap: 0.42rem;
+        border: 1px solid var(--accent);
+        border-radius: var(--radius-md);
+        background: var(--accent);
+        color: #ffffff;
+        padding: 0.4rem 0.66rem;
+        font-size: 0.84rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        box-shadow: none;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .contest-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+        overflow: hidden;
+    }
+
+    .current-contest-card {
+        border-color: rgba(75, 142, 128, 0.42);
+        box-shadow: 0 8px 24px rgba(34, 53, 80, 0.06), 0 0 0 3px rgba(90, 160, 145, 0.08);
+    }
+
+    .current-contest-card h2 {
+        background: rgba(232, 246, 242, 0.95);
+        color: #1d4f49;
+    }
+
+    .contest-card h2 {
+        margin: 0;
+        padding: 0.9rem 1rem;
+        font-size: 1.04rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.22);
+    }
+
+    .contest-table-wrap {
+        overflow-x: auto;
+    }
+
+    .contest-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 980px;
+    }
+
+    .contest-table th,
+    .contest-table td {
+        padding: 0.68rem 0.62rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.22);
+        border-right: 1px solid rgba(49, 69, 95, 0.18);
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+
+    .contest-table th:last-child,
+    .contest-table td:last-child {
+        border-right: none;
+    }
+
+    .contest-table th {
+        color: #31455f;
+        background: #f9fbff;
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
         text-align: center;
     }
 
-    h1 {
-        margin-top: 2rem;
-        color: #111;
+    .contest-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .col-title {
+        width: 32%;
+        min-width: 300px;
+    }
+
+    .contest-title {
+        font-weight: 700;
+        color: #1a2f46;
+        word-break: break-word;
+    }
+
+    .author-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        justify-content: center;
+    }
+
+    .author-btn {
+        border: 1px solid #cdd9ea;
+        background: #f5f8fc;
+        color: #1f4e7a;
+        border-radius: var(--radius-md);
+        padding: 0.24rem 0.48rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .author-btn:hover {
+        background: var(--accent-soft);
+        border-color: #bfcfe6;
+    }
+
+    .time-cell {
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+    }
+
+    .dt-date {
+        font-weight: 600;
+        color: #1f3147;
+        line-height: 1.2;
+    }
+
+    .dt-time {
+        margin-top: 0.18rem;
+        font-size: 0.82rem;
+        color: #6b7c91;
+        line-height: 1.2;
+    }
+
+    .status-upcoming {
+        color: #2f5f96;
+        font-weight: 700;
+    }
+
+    .status-running {
+        color: #0d7a3a;
+        font-weight: 700;
+    }
+
+    .status-finished {
+        color: #6a7789;
+        font-weight: 700;
+    }
+
+    .muted-text {
+        color: #71839a;
+    }
+
+    .action-btn,
+    .contest-clear-btn {
+        border: 1px solid var(--border);
+        background: #f5f8fc;
+        color: var(--text-main);
+        border-radius: var(--radius-md);
+        font-size: 0.83rem;
+        min-height: 2.45rem;
+        padding: 0.38rem 0.72rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+    }
+
+    .contest-search-btn {
+        border-width: 0 0 0 1px;
+        border-radius: 0;
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #ffffff;
+    }
+
+    .contest-search-btn:hover {
+        background: #163c60;
+        border-color: #163c60;
+    }
+
+    .contest-clear-btn {
+        width: 2.45rem;
+        border-width: 0 0 0 1px;
+        border-radius: 0;
+        border-color: rgba(49, 69, 95, 0.16);
+        background: #ffffff;
+        color: #61758c;
+        padding: 0;
+        font-size: 1rem;
+        line-height: 1;
+    }
+
+    .action-btn:hover,
+    .contest-clear-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+        color: var(--accent);
+    }
+
+    .action-btn.primary {
+        background: rgb(231, 50, 36);
+        border-color: rgb(231, 50, 36);
+        color: #ffffff;
+    }
+
+    .action-btn.primary:hover {
+        box-shadow: 0 7px 16px rgba(231, 50, 36, 0.2);
+    }
+
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        padding: 0.75rem 1rem;
+        border-top: 1px solid rgba(49, 69, 95, 0.22);
+        background: #fbfdff;
+    }
+
+    .pager-meta {
+        font-size: 0.82rem;
+        color: #5f7288;
+    }
+
+    .pager-form {
+        margin: 0;
+    }
+
+    @media (max-width: 1100px) {
+        .contest-shell {
+            margin: 0 1rem 1.4rem;
+        }
+
+        .contest-search-form {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .contest-shell {
+            margin: 0 0.75rem 1.2rem;
+        }
+
+        .contest-search-form {
+            padding: 0.5rem;
+        }
+
+        .contest-search-group {
+            grid-template-columns: minmax(0, 1fr) auto auto;
+        }
+
+        .contest-search-btn {
+            padding: 0.38rem 0.58rem;
+        }
+
+        .contest-clear-btn {
+            width: 2.25rem;
+            min-height: 2.45rem;
+        }
+
+        .contest-table th,
+        .contest-table td {
+            padding: 0.56rem 0.5rem;
+            font-size: 0.84rem;
+        }
     }
 </style>
-<div class="table-style">
-    <br><br>
-    <table border="1" style="border-collapse: collapse; color: rgb(74, 74, 74); width: 100%;">
-        <tr>
-            <th colspan="7" style="text-align: left;">Current or upcoming contests</th>
-        </tr>
-        <tr>
-            <th>Title</th>
-            <th>Authors</th>
-            <th>Start</th>
-            <th>End</th>
-            <th>Length</th>
-            <th></th>
-            <th></th>
-        </tr>
-        {{range .Contests}}
-        <tr>
-            <td>{{.Title}}</td>
-            <td><a href="/profile?username=admin">admin</a></td>
-            <td>{{.StartTime}}</td>
-            <td>{{.EndTime}}</td>
-            <td>02:00</td>
-            <td>starts in 14:20:13</td>
-            <td>
-                <form method="post" action="/register/contest?id={{.ID}}" style="display:inline;">
-                    <input type="submit" value="Register"
-                        style=" padding:5px; font-weight:600; font-size:15px; color:white; background-color:red; border:none; cursor:pointer;">
-                </form>
-            </td>
-        </tr>
-        {{else}}
-        <tr>
-            <td colspan="7" style="text-align: center;">No data found.</td>
-        </tr>
-        {{end}}
 
-    </table>
-</div>
+<section class="contest-shell">
+    <div class="contest-toolbar">
+        <form class="contest-search-form" method="get" action="/contests">
+            <div class="contest-search-group">
+                <div class="contest-search-wrap">
+                    <span class="contest-search-icon">&#128269;</span>
+                    <input class="contest-search-input" type="text" name="q" value="{{.Search}}"
+                        placeholder="Search contests by title or author" autocomplete="off">
+                </div>
+                {{if .Search}}
+                <button type="button" class="contest-clear-btn" title="Clear search" aria-label="Clear search"
+                    onclick="window.location.href='/contests'">&times;</button>
+                {{end}}
+                <button type="submit" class="action-btn contest-search-btn">Search</button>
+            </div>
+        </form>
+    </div>
 
+    <div class="contest-card current-contest-card">
+        <h2>Current or Upcoming Contests</h2>
+        <div class="contest-table-wrap">
+            <table class="contest-table">
+                <thead>
+                    <tr>
+                        <th class="col-title">Title</th>
+                        <th>Authors</th>
+                        <th>Start (Local)</th>
+                        <th>End <br>(Local)</th>
+                        <th>Length</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Contests}}
+                    <tr class="js-contest-row" data-contest-id="{{.ID}}" data-registered="{{if .Registered}}true{{else}}false{{end}}" data-start-utc="{{.StartTime}}" data-end-utc="{{.EndTime}}">
+                        <td class="contest-title col-title">{{.Title}}</td>
+                        <td>
+                            <div class="author-list">
+                                {{if .Authors}}
+                                {{range .Authors}}
+                                <button type="button" class="author-btn js-author-link" data-username="{{.}}">{{.}}</button>
+                                {{end}}
+                                {{else}}
+                                <span class="muted-text">-</span>
+                                {{end}}
+                            </div>
+                        </td>
+                        <td class="time-cell js-local-start">{{.StartTime}} UTC</td>
+                        <td class="time-cell js-local-end">{{.EndTime}} UTC</td>
+                        <td class="time-cell js-length">--</td>
+                        <td class="time-cell js-starts-in">--</td>
+                        <td class="time-cell js-contest-action">
+                            {{if .Registered}}
+                            {{if .Running}}
+                            <button type="button" class="contest-open-button" onclick="window.location.href='/contest?id={{.ID}}'">
+                                enter
+                            </button>
+                            {{else}}
+                            <form method="post" action="/unregister/contest?id={{.ID}}" style="display:inline;">
+                                <input type="hidden" name="username" value="{{$.Pusername}}">
+                                <input type="submit" class="action-btn primary" value="Unregister">
+                            </form>
+                            {{end}}
+                            {{else}}
+                            {{if .Running}}
+                            <button type="button" class="contest-open-button" onclick="window.location.href='/contest?id={{.ID}}'">
+                                view
+                            </button>
+                            {{else}}
+                            <form method="post" action="/register/contest?id={{.ID}}" style="display:inline;">
+                                <input type="hidden" name="username" value="{{$.Pusername}}">
+                                <input type="submit" class="action-btn primary" value="Register">
+                            </form>
+                            {{end}}
+                            {{end}}
+                        </td>
+                    </tr>
+                    {{else}}
+                    <tr>
+                        <td colspan="7" class="muted-text" style="text-align:center;">No contest data found.</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            <div class="pager-meta">Current/Upcoming page {{.CurrentPage}} • total {{.CurrentTotal}}</div>
+            {{if .HasNextCurrent}}
+            <form class="pager-form" method="get" action="/contests">
+                <input type="hidden" name="q" value="{{.Search}}">
+                <input type="hidden" name="curr_page" value="{{.NextCurrentPage}}">
+                <input type="hidden" name="past_page" value="{{.PastPage}}">
+                <button type="submit" class="action-btn">Next page</button>
+            </form>
+            {{else}}
+            <span class="pager-meta">No more current/upcoming contests</span>
+            {{end}}
+        </div>
+    </div>
+
+
+    <div class="contest-card">
+        <h2>Past Contests</h2>
+        <div class="contest-table-wrap">
+            <table class="contest-table">
+                <thead>
+                    <tr>
+                        <th class="col-title">Title</th>
+                        <th>Authors</th>
+                        <th>Start (Local)</th>
+                        <th>End (Local)</th>
+                        <th>Length</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .PastContests}}
+                    <tr class="js-past-row" data-start-utc="{{.StartTime}}" data-end-utc="{{.EndTime}}">
+                        <td class="contest-title col-title">{{.Title}}</td>
+                        <td>
+                            <div class="author-list">
+                                {{if .Authors}}
+                                {{range .Authors}}
+                                <button type="button" class="author-btn js-author-link" data-username="{{.}}">{{.}}</button>
+                                {{end}}
+                                {{else}}
+                                <span class="muted-text">-</span>
+                                {{end}}
+                            </div>
+                        </td>
+                        <td class="time-cell js-local-start">{{.StartTime}} UTC</td>
+                        <td class="time-cell js-local-end">{{.EndTime}} UTC</td>
+                        <td class="time-cell js-length">--</td>
+                        <td class="time-cell status-finished">
+                            <button type="button" class="contest-open-button" onclick="window.location.href='/contest?id={{.ID}}'">
+                                view
+                            </button>
+                        </td>
+                    </tr>
+                    {{else}}
+                    <tr>
+                        <td colspan="6" class="muted-text" style="text-align:center;">No past contests found.</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            <div class="pager-meta">Past page {{.PastPage}} • total {{.PastTotal}}</div>
+            {{if .HasNextPast}}
+            <form class="pager-form" method="get" action="/contests">
+                <input type="hidden" name="q" value="{{.Search}}">
+                <input type="hidden" name="past_page" value="{{.NextPastPage}}">
+                <input type="hidden" name="curr_page" value="{{.CurrentPage}}">
+                <button type="submit" class="action-btn">Next page</button>
+            </form>
+            {{else}}
+            <span class="pager-meta">No more past contests</span>
+            {{end}}
+        </div>
+    </div>
+</section>
+
+<script>
+    (function () {
+        function parseUTC(dateTimeText) {
+            if (!dateTimeText) return null;
+            var m = String(dateTimeText).trim().match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/);
+            if (!m) return null;
+            return new Date(Date.UTC(
+                Number(m[1]),
+                Number(m[2]) - 1,
+                Number(m[3]),
+                Number(m[4]),
+                Number(m[5]),
+                Number(m[6] || 0)
+            ));
+        }
+
+        function formatLocalParts(dateObj) {
+            if (!dateObj) return { date: "--", time: "--" };
+            return {
+                date: dateObj.toLocaleDateString([], {
+                    year: "numeric",
+                    month: "short",
+                    day: "2-digit"
+                }),
+                time: dateObj.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit"
+                })
+            };
+        }
+
+        function renderTwoLineDateTime(cell, dateObj) {
+            if (!cell) return;
+            var parts = formatLocalParts(dateObj);
+            cell.innerHTML = '<div class="dt-date">' + parts.date + '</div><div class="dt-time">' + parts.time + '</div>';
+        }
+
+        function formatDuration(ms, includeSeconds) {
+            var total = Math.max(0, Math.floor(ms / 1000));
+            var days = Math.floor(total / 86400);
+            total %= 86400;
+            var hours = Math.floor(total / 3600);
+            total %= 3600;
+            var minutes = Math.floor(total / 60);
+            var seconds = total % 60;
+
+            var parts = [];
+            if (days > 0) parts.push(days + "d");
+            if (hours > 0 || days > 0) parts.push(hours + "h");
+            parts.push(minutes + "m");
+            if (includeSeconds) parts.push(seconds + "s");
+            return parts.join(" ");
+        }
+
+        function hydrateRows(selector) {
+            var rows = document.querySelectorAll(selector);
+            rows.forEach(function (row) {
+                var start = parseUTC(row.dataset.startUtc);
+                var end = parseUTC(row.dataset.endUtc);
+                row._startDate = start;
+                row._endDate = end;
+
+                renderTwoLineDateTime(row.querySelector(".js-local-start"), start);
+                renderTwoLineDateTime(row.querySelector(".js-local-end"), end);
+
+                var lengthCell = row.querySelector(".js-length");
+                if (lengthCell && start && end) {
+                    lengthCell.textContent = formatDuration(end - start, false);
+                }
+            });
+            return rows;
+        }
+
+        var currentRows = hydrateRows(".js-contest-row");
+        hydrateRows(".js-past-row");
+
+        function updateCountdowns() {
+            var now = new Date();
+            currentRows.forEach(function (row) {
+                var cell = row.querySelector(".js-starts-in");
+                if (!cell || !row._startDate || !row._endDate) return;
+                var actionCell = row.querySelector(".js-contest-action");
+
+                if (now < row._startDate) {
+                    cell.className = "time-cell js-starts-in status-upcoming";
+                    cell.textContent = "Starts in " + formatDuration(row._startDate - now, true);
+                    return;
+                }
+
+                if (now <= row._endDate) {
+                    cell.className = "time-cell js-starts-in status-running";
+                    cell.textContent = "Running - ends in " + formatDuration(row._endDate - now, true);
+                    updateStartedAction(row, actionCell);
+                    return;
+                }
+
+                cell.className = "time-cell js-starts-in status-finished";
+                cell.textContent = "Finished";
+                updateStartedAction(row, actionCell);
+            });
+        }
+
+        function updateStartedAction(row, actionCell) {
+            if (!actionCell || actionCell.dataset.startedActionApplied === "true") return;
+            var contestId = row.dataset.contestId;
+            if (!contestId) return;
+            var label = row.dataset.registered === "true" ? "enter" : "view";
+            actionCell.innerHTML = "";
+            var button = document.createElement("button");
+            button.type = "button";
+            button.className = "contest-open-button";
+            button.textContent = label;
+            button.addEventListener("click", function () {
+                window.location.href = "/contest?id=" + encodeURIComponent(contestId);
+            });
+            actionCell.appendChild(button);
+            actionCell.dataset.startedActionApplied = "true";
+        }
+
+        document.querySelectorAll(".js-author-link").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                var username = this.getAttribute("data-username") || "";
+                window.location.href = "/profile?username=" + encodeURIComponent(username);
+            });
+        });
+
+        updateCountdowns();
+        setInterval(updateCountdowns, 1000);
+    })();
+</script>
 {{end}}

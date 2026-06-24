@@ -1,0 +1,636 @@
+{{define "content"}}
+<style>
+    .standings-shell {
+        margin: 0 8rem 1.5rem;
+        display: grid;
+        gap: 12px;
+        color: var(--text-main);
+    }
+
+    .contest-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+    }
+
+    .contest-tab-btn {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        color: var(--text-main);
+        padding: 0.42rem 0.7rem;
+        font-size: 0.84rem;
+        font-weight: 650;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .contest-tab-btn:hover,
+    .contest-tab-btn.active {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+        color: var(--accent);
+    }
+
+    .standings-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+        overflow: hidden;
+    }
+
+    .standings-head {
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.16);
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .standings-head h1 {
+        margin: 0;
+        font-size: 1.08rem;
+        letter-spacing: -0.01em;
+    }
+
+    .standings-head p {
+        margin: 0.18rem 0 0;
+        color: var(--text-soft);
+        font-size: 0.84rem;
+    }
+
+    .standings-head-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        flex-wrap: wrap;
+    }
+
+    .contest-end-timer {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #f8fbff;
+        color: #31455f;
+        padding: 0.34rem 0.62rem;
+        font-size: 0.86rem;
+        font-weight: 650;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    .contest-end-timer strong {
+        color: var(--accent);
+        font-weight: 700;
+    }
+
+    .jump-btn,
+    .standings-btn {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        color: var(--accent);
+        padding: 0.38rem 0.62rem;
+        font-size: 0.82rem;
+        font-weight: 650;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .jump-btn:hover,
+    .standings-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+    }
+
+    .jump-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+
+    .standings-table-wrap {
+        overflow-x: auto;
+    }
+
+    .standings-table {
+        width: 100%;
+        min-width: 760px;
+        border-collapse: collapse;
+    }
+
+    .standings-table th,
+    .standings-table td {
+        padding: 0.68rem 0.72rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.18);
+        border-right: 1px solid rgba(49, 69, 95, 0.12);
+        font-size: 0.88rem;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .standings-table th:last-child,
+    .standings-table td:last-child {
+        border-right: none;
+    }
+
+    .standings-table th {
+        color: #31455f;
+        background: #f9fbff;
+        font-size: 0.78rem;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    .standings-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .standings-table tbody tr.current-user-row {
+        background: rgba(237, 244, 251, 0.9);
+        box-shadow: inset 3px 0 0 var(--accent);
+    }
+
+    .standings-table tbody tr.jump-highlight {
+        outline: 2px solid rgba(31, 78, 122, 0.35);
+        outline-offset: -2px;
+    }
+
+    .user-cell {
+        text-align: left;
+        min-width: 220px;
+    }
+
+    .rank-pill,
+    .score-pill,
+    .penalty-pill,
+    .solve-chip {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: #f8fbff;
+        color: #52657d;
+        font-size: 0.8rem;
+        font-weight: 650;
+        white-space: nowrap;
+    }
+
+    .rank-pill,
+    .score-pill,
+    .penalty-pill {
+        padding: 0.22rem 0.56rem;
+    }
+
+    .penalty-pill {
+        background: #fffaf1;
+        border-color: #ead8b4;
+        color: #7a5d26;
+    }
+
+    .solve-list {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.28rem;
+    }
+
+    .solve-chip {
+        width: 24px;
+        height: 24px;
+        border-radius: var(--radius-md);
+    }
+
+    .solve-chip.solved {
+        background: #e8f6e2;
+        border-color: #bcdcae;
+        color: #2e5c22;
+    }
+
+    .solve-chip.unsolved {
+        background: #f8fbff;
+        color: #8a98aa;
+    }
+
+    .problem-score-header {
+        min-width: 78px;
+    }
+
+    .problem-header-btn {
+        border: 0;
+        background: transparent;
+        color: #0018b8;
+        padding: 0;
+        font: inherit;
+        font-size: 0.96rem;
+        font-weight: 800;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    .standing-problem-cell {
+        min-width: 78px;
+        height: 56px;
+        background: #fbfcfe;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .problem-result {
+        display: grid;
+        justify-items: center;
+        gap: 0.1rem;
+        line-height: 1.08;
+    }
+
+    .accepted-mark {
+        color: #07920e;
+        font-size: 1rem;
+        font-weight: 800;
+    }
+
+    .wrong-mark {
+        color: #0018b8;
+        font-size: 0.95rem;
+        font-weight: 750;
+    }
+
+    .accepted-time {
+        color: #111827;
+        font-size: 0.82rem;
+        font-weight: 600;
+    }
+
+    .muted-text {
+        color: var(--text-soft);
+    }
+
+    @media (max-width: 1100px) {
+        .standings-shell {
+            margin: 0 1rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .standings-shell {
+            margin: 0 0.75rem 1.5rem;
+        }
+
+        .contest-tab-btn {
+            flex: 1 1 auto;
+        }
+
+        .standings-head-actions {
+            width: 100%;
+            align-items: stretch;
+        }
+
+        .jump-btn,
+        .contest-end-timer {
+            justify-content: center;
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="standings-shell">
+    <div class="mid btns">
+        <button class="buttons" type="button" onclick="window.location.href='/contest?id={{.ID}}'">Tasks</button>
+        <button class="buttons" type="button" onclick="window.location.href='/contest/mysubmissions?id={{.ID}}'">My submissions</button>
+        <button class="buttons" type="button" onclick="window.location.href='/contest/status?id={{.ID}}'">Status</button>
+        <button class="buttons" type="button" style="color: var(--accent);" onclick="window.location.href='/contest/standings?id={{.ID}}'">Standings</button>
+                    
+    </div>
+
+    <div class="standings-card">
+        <div class="standings-head">
+            <div>
+                <h1>{{.Name}}</h1>
+            </div>
+            <div class="standings-head-actions">
+                <button type="button" id="jump-to-me" class="jump-btn">Jump to my standing</button>
+                <div class="contest-end-timer" data-end-utc="{{.EndTime}}">
+                    <span>Ends in</span>
+                    <strong id="contest-ends-in">--:--:--</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="standings-table-wrap">
+            <table class="standings-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th class="user-cell">User</th>
+                        <th>Score</th>
+                        <th>Penalty</th>
+                        <th>Solved</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .List}}
+                    <tr class="{{if eq .Username $.Pusername}}current-user-row{{end}}" {{if eq .Username $.Pusername}}id="my-standing-row"{{end}}>
+                        <td><span class="rank-pill">#{{.Rank}}</span></td>
+                        <td class="user-cell">
+                            <button type="button" class="standings-btn" onclick="window.location.href='/profile?username={{.Username}}'">{{.Username}}</button>
+                        </td>
+                        <td><span class="score-pill">{{.Score}}</span></td>
+                        <td><span class="penalty-pill">{{.Penalty}}</span></td>
+                        <td>
+                            <div class="solve-list">
+                                {{range .Solved}}
+                                {{if .}}
+                                <span class="solve-chip solved">✓</span>
+                                {{else}}
+                                <span class="solve-chip unsolved">-</span>
+                                {{end}}
+                                {{end}}
+                            </div>
+                        </td>
+                    </tr>
+                    {{else}}
+                    <tr>
+                        <td colspan="100" class="muted-text">No standings found.</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<script>
+    (function () {
+        var timer = document.querySelector(".contest-end-timer");
+        var output = document.getElementById("contest-ends-in");
+
+        function parseUTC(value) {
+            var match = String(value || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+            if (!match) return null;
+            return new Date(Date.UTC(
+                Number(match[1]),
+                Number(match[2]) - 1,
+                Number(match[3]),
+                Number(match[4]),
+                Number(match[5]),
+                Number(match[6] || 0)
+            ));
+        }
+
+        function pad(value) {
+            return String(value).padStart(2, "0");
+        }
+
+        function renderCountdown() {
+            if (!timer || !output) return;
+            var end = parseUTC(timer.dataset.endUtc);
+            if (!end) {
+                output.textContent = "--:--:--";
+                return;
+            }
+
+            var remaining = end.getTime() - Date.now();
+            if (remaining <= 0) {
+                output.textContent = "Finished";
+                return;
+            }
+
+            var totalSeconds = Math.floor(remaining / 1000);
+            var hours = Math.floor(totalSeconds / 3600);
+            var minutes = Math.floor((totalSeconds % 3600) / 60);
+            var seconds = totalSeconds % 60;
+
+            output.textContent = hours + ":" + pad(minutes) + ":" + pad(seconds);
+        }
+
+        function setupJumpToMe() {
+            var button = document.getElementById("jump-to-me");
+            var row = document.getElementById("my-standing-row");
+            if (!button) return;
+            if (!row) {
+                button.disabled = true;
+                button.textContent = "Not ranked yet";
+                return;
+            }
+
+            button.addEventListener("click", function () {
+                row.scrollIntoView({ behavior: "smooth", block: "center" });
+                row.classList.add("jump-highlight");
+                setTimeout(function () {
+                    row.classList.remove("jump-highlight");
+                }, 1400);
+            });
+        }
+
+        function getContestId() {
+            return new URLSearchParams(window.location.search).get("id") || "";
+        }
+
+        function normalizeText(value) {
+            return String(value || "").replace(/\s+/g, " ").trim();
+        }
+
+        function problemKey(username, serial) {
+            return normalizeText(username) + "||" + normalizeText(serial);
+        }
+
+        function formatElapsed(from, to) {
+            if (!from || !to) return "";
+            var totalMinutes = Math.max(0, Math.floor((to.getTime() - from.getTime()) / 60000));
+            var hours = Math.floor(totalMinutes / 60);
+            var minutes = totalMinutes % 60;
+            return pad(hours) + ":" + pad(minutes);
+        }
+
+        function fetchDocument(url) {
+            return fetch(url, { credentials: "same-origin" })
+                .then(function (response) {
+                    if (!response.ok) throw new Error("Request failed");
+                    return response.text();
+                })
+                .then(function (html) {
+                    return new DOMParser().parseFromString(html, "text/html");
+                });
+        }
+
+        function getProblemSerials(contestId) {
+            return fetchDocument("/contest?id=" + encodeURIComponent(contestId)).then(function (doc) {
+                var serials = [];
+                doc.querySelectorAll(".serial-badge").forEach(function (button) {
+                    var serial = normalizeText(button.textContent);
+                    if (serial && serials.indexOf(serial) === -1) serials.push(serial);
+                });
+                return serials;
+            });
+        }
+
+        function getContestStart(contestId) {
+            var contestName = normalizeText(document.querySelector(".standings-head h1") && document.querySelector(".standings-head h1").textContent);
+            var endUtc = normalizeText(timer && timer.dataset.endUtc);
+            return fetchDocument("/contests?q=" + encodeURIComponent(contestName)).then(function (doc) {
+                var best = null;
+                doc.querySelectorAll(".js-contest-row, .js-past-row").forEach(function (row) {
+                    var title = normalizeText(row.querySelector(".contest-title") && row.querySelector(".contest-title").textContent);
+                    var rowEnd = normalizeText(row.dataset.endUtc);
+                    if (!best && title === contestName) best = row;
+                    if (title === contestName && rowEnd === endUtc) best = row;
+                });
+                return best ? parseUTC(best.dataset.startUtc) : null;
+            }).catch(function () {
+                return null;
+            });
+        }
+
+        function getStatusRecords(contestId) {
+            return fetchDocument("/contest/status?id=" + encodeURIComponent(contestId)).then(function (doc) {
+                var records = [];
+                doc.querySelectorAll(".status-table tbody tr").forEach(function (row) {
+                    var timeCell = row.querySelector(".js-local-time");
+                    var userButton = row.querySelector("td:nth-child(3) button");
+                    var problemButton = row.querySelector(".problem-open-btn");
+                    var verdictPill = row.querySelector(".verdict-pill");
+                    if (!timeCell || !userButton || !problemButton || !verdictPill) return;
+                    var problemText = normalizeText(problemButton.textContent);
+                    records.push({
+                        time: parseUTC(timeCell.dataset.utc || timeCell.textContent),
+                        username: normalizeText(userButton.textContent),
+                        serial: normalizeText(problemText.split(".")[0]),
+                        verdict: normalizeText(verdictPill.textContent)
+                    });
+                });
+                return records;
+            }).catch(function () {
+                return [];
+            });
+        }
+
+        function buildResultMap(records) {
+            var map = {};
+            records.sort(function (a, b) {
+                return (a.time ? a.time.getTime() : 0) - (b.time ? b.time.getTime() : 0);
+            });
+            records.forEach(function (record) {
+                if (!record.time || !record.username || !record.serial) return;
+                var key = problemKey(record.username, record.serial);
+                if (!map[key]) {
+                    map[key] = { wrong: 0, acceptedAt: null, wrongBeforeAccepted: 0 };
+                }
+                if (map[key].acceptedAt) return;
+                if (record.verdict === "Accepted") {
+                    map[key].acceptedAt = record.time;
+                    map[key].wrongBeforeAccepted = map[key].wrong;
+                } else {
+                    map[key].wrong += 1;
+                }
+            });
+            return map;
+        }
+
+        function makeProblemHeader(serial, contestId) {
+            var th = document.createElement("th");
+            th.className = "problem-score-header";
+            var button = document.createElement("button");
+            button.type = "button";
+            button.className = "problem-header-btn";
+            button.textContent = serial;
+            button.addEventListener("click", function () {
+                window.location.href = "/contest/task?id=" + encodeURIComponent(contestId) + "&&task=" + encodeURIComponent(serial);
+            });
+            th.appendChild(button);
+            return th;
+        }
+
+        function makeProblemCell(result, startTime, fallbackSolved) {
+            var td = document.createElement("td");
+            td.className = "standing-problem-cell";
+            var wrap = document.createElement("div");
+            wrap.className = "problem-result";
+
+            if (result && result.acceptedAt) {
+                var mark = document.createElement("div");
+                mark.className = "accepted-mark";
+                mark.textContent = result.wrongBeforeAccepted > 0 ? "+" + result.wrongBeforeAccepted : "+";
+                wrap.appendChild(mark);
+
+                var acceptedTime = document.createElement("div");
+                acceptedTime.className = "accepted-time";
+                acceptedTime.textContent = formatElapsed(startTime, result.acceptedAt);
+                wrap.appendChild(acceptedTime);
+            } else if (result && result.wrong > 0) {
+                var wrong = document.createElement("div");
+                wrong.className = "wrong-mark";
+                wrong.textContent = "-" + result.wrong;
+                wrap.appendChild(wrong);
+            } else if (fallbackSolved) {
+                var fallback = document.createElement("div");
+                fallback.className = "accepted-mark";
+                fallback.textContent = "+";
+                wrap.appendChild(fallback);
+            }
+
+            td.appendChild(wrap);
+            return td;
+        }
+
+        function enhanceStandingsMatrix() {
+            var contestId = getContestId();
+            var table = document.querySelector(".standings-table");
+            if (!contestId || !table) return;
+
+            Promise.all([
+                getProblemSerials(contestId),
+                getContestStart(contestId),
+                getStatusRecords(contestId)
+            ]).then(function (values) {
+                var serials = values[0];
+                var startTime = values[1];
+                var records = values[2];
+                if (!serials.length) return;
+
+                var resultMap = buildResultMap(records);
+                var headerRow = table.querySelector("thead tr");
+                var solvedHeader = headerRow && headerRow.lastElementChild;
+                if (!headerRow || !solvedHeader || solvedHeader.dataset.matrixReady === "true") return;
+
+                solvedHeader.remove();
+                serials.forEach(function (serial) {
+                    headerRow.appendChild(makeProblemHeader(serial, contestId));
+                });
+
+                table.querySelectorAll("tbody tr").forEach(function (row) {
+                    var userButton = row.querySelector(".user-cell button");
+                    var solvedCell = row.lastElementChild;
+                    if (!userButton || !solvedCell || !solvedCell.querySelector(".solve-list")) return;
+
+                    var username = normalizeText(userButton.textContent);
+                    var fallback = Array.prototype.map.call(solvedCell.querySelectorAll(".solve-chip"), function (chip) {
+                        return chip.classList.contains("solved");
+                    });
+
+                    solvedCell.remove();
+                    serials.forEach(function (serial, index) {
+                        row.appendChild(makeProblemCell(resultMap[problemKey(username, serial)], startTime, fallback[index]));
+                    });
+                });
+
+                headerRow.dataset.matrixReady = "true";
+            }).catch(function () {});
+        }
+
+        renderCountdown();
+        setInterval(renderCountdown, 1000);
+        setupJumpToMe();
+        enhanceStandingsMatrix();
+    })();
+</script>
+
+
+
+{{end}}
+
+

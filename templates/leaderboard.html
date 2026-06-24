@@ -1,75 +1,520 @@
 {{define "content"}}
 <style>
-    .table-style {
-        margin-left: 8rem;
-        margin-right: 8rem;
+    .lb-shell {
+        margin: 0 8rem 1.5rem;
+        display: grid;
+        gap: 12px;
+        color: var(--text-main);
+    }
+
+    .lb-head {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+        padding: 0.85rem 1rem;
+        display: grid;
+        gap: 0.65rem;
+    }
+
+    .lb-head-row {
         display: flex;
-        flex-direction: column;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.7rem;
+    }
+
+    .lb-head h1 {
+        margin: 0;
+        font-size: 1.08rem;
+        letter-spacing: -0.01em;
+    }
+
+    .lb-meta {
+        font-size: 0.82rem;
+        color: #61758c;
+    }
+
+    .lb-jump-btn {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        color: var(--accent);
+        min-height: 2.25rem;
+        padding: 0.34rem 0.62rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .lb-jump-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+    }
+
+    .lb-jump-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+
+    .lb-toolbar {
+        display: grid;
+        grid-template-columns: minmax(300px, 1fr) minmax(220px, 280px);
+        gap: 0.65rem;
+        align-items: center;
+        border: 1px solid rgba(49, 69, 95, 0.14);
+        border-radius: 10px;
+        background: #f7faff;
+        padding: 0.55rem;
+    }
+
+    .lb-search-group {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        align-items: stretch;
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .lb-search-group:focus-within,
+    .lb-sort-wrap:focus-within {
+        border-color: #9fbbdc;
+        box-shadow: 0 0 0 3px rgba(31, 78, 122, 0.11);
+    }
+
+    .lb-search-wrap {
+        position: relative;
+        min-width: 0;
+    }
+
+    .lb-search-wrap input.lb-input[type="text"] {
+        display: block;
+        width: 100%;
+        height: 2.45rem;
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+        background: #ffffff;
+        color: var(--text-main);
+        padding: 0.42rem 0.75rem 0.42rem 2.05rem;
+        font-size: 0.86rem;
+        font-family: inherit;
+        outline: none;
+        box-shadow: none;
+    }
+
+    .lb-search-icon {
+        position: absolute;
+        left: 0.72rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #74869d;
+        font-size: 0.88rem;
+        pointer-events: none;
+    }
+
+    .lb-sort-wrap {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 0.5rem;
+        align-items: center;
+        min-width: 0;
+        height: 2.55rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        padding: 0 0.55rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .lb-sort-label {
+        color: #61758c;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .lb-select {
+        width: 100%;
+        height: 2.2rem;
+        margin: 0;
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        color: var(--text-main);
+        padding: 0;
+        font-size: 0.86rem;
+        font-family: inherit;
+        outline: none;
+    }
+
+    .lb-search-btn,
+    .lb-clear-btn,
+    .lb-page-btn {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #f5f8fc;
+        color: var(--text-main);
+        min-height: 2.45rem;
+        padding: 0.38rem 0.72rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .lb-search-btn {
+        border-width: 0 0 0 1px;
+        border-radius: 0;
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #ffffff;
+    }
+
+    .lb-search-btn:hover {
+        background: #163c60;
+        border-color: #163c60;
+    }
+
+    .lb-clear-btn {
+        width: 2.45rem;
+        padding: 0;
+        border-width: 0 0 0 1px;
+        border-radius: 0;
+        border-color: rgba(49, 69, 95, 0.16);
+        background: #ffffff;
+        color: #61758c;
+        font-size: 1rem;
+        line-height: 1;
+    }
+
+    .lb-clear-btn:hover,
+    .lb-page-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+        color: var(--accent);
+    }
+
+    .lb-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+        overflow: hidden;
+    }
+
+    .lb-wrap {
+        overflow-x: auto;
+    }
+
+    .lb-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 760px;
+    }
+
+    .lb-table th,
+    .lb-table td {
+        padding: 0.62rem 0.58rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.22);
+        border-right: 1px solid rgba(49, 69, 95, 0.18);
+        vertical-align: middle;
+        font-size: 0.88rem;
+    }
+
+    .lb-table th:last-child,
+    .lb-table td:last-child {
+        border-right: none;
+    }
+
+    .lb-table th {
+        text-align: center;
+        background: #f9fbff;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #31455f;
+    }
+
+    .lb-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .lb-row-current {
+        background: #edf4fb;
+    }
+
+    .lb-table tbody tr.lb-jump-highlight {
+        outline: 2px solid rgba(31, 78, 122, 0.35);
+        outline-offset: -2px;
+    }
+
+    .lb-rank,
+    .lb-solved {
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .lb-rank-value {
+        display: inline-flex;
+        width: 1.55rem;
+        height: 1.55rem;
         align-items: center;
         justify-content: center;
+        border-radius: 50%;
+        border: 1px solid #c7d8ec;
+        background: #f5f9ff;
+        color: #244669;
+        font-size: 0.78rem;
+        font-weight: 700;
     }
 
-    table td,
-    table th {
-        padding: 10px;
-        font-size: large;
+    .lb-user-btn {
+        border: none;
+        background: none;
+        padding: 0;
+        margin: 0;
         text-align: left;
+        cursor: pointer;
+        font: inherit;
+        color: #1a2f46;
+        font-size: 0.92rem;
+        font-weight: 700;
     }
 
-    table td:nth-child(1),
-    table th:nth-child(1),
-    table td:nth-child(3),
-    table th:nth-child(3) {
-        width: 5rem;
+    .lb-user-btn:hover {
+        color: #1f4e7a;
     }
 
-    h1 {
-        margin-top: 2rem;
-        color: #111;
+    .lb-name {
+        color: #66798f;
+        font-size: 0.8rem;
+        margin-top: 0.15rem;
     }
 
-    .yes {
-        background-color: RGB(224, 237, 253) !important;
+    .lb-score {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2.2rem;
+        border-radius: 999px;
+        border: 1px solid #c7d8ec;
+        background: #f5f9ff;
+        color: #244669;
+        font-size: 0.82rem;
+        font-weight: 700;
+        padding: 0.1rem 0.42rem;
     }
-    /* Initialize the counter on the table */
-    table {
-        counter-reset: rank-counter;
+
+    .lb-empty {
+        text-align: center;
+        color: #7a8ea7;
+        font-size: 0.9rem;
+        padding: 1.1rem 0.8rem;
     }
-    /* Increment the counter for every row (except the header) */
-    table tr {
-        counter-increment: rank-counter;
+
+    .lb-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        padding: 0.72rem 0.9rem;
+        border-top: 1px solid rgba(49, 69, 95, 0.22);
+        background: #fbfdff;
     }
-    /* Skip the header row so it doesn't count as #1 */
-    table tr:first-child {
-        counter-reset: rank-counter;
+
+    .lb-pages {
+        display: flex;
+        gap: 0.45rem;
+        align-items: center;
+        flex-wrap: wrap;
     }
-    /* Display the number in the rank cell */
-    td.rank::before {
-        content: counter(rank-counter);
+
+    .lb-page-form {
+        margin: 0;
+    }
+
+    @media (max-width: 1100px) {
+        .lb-shell {
+            margin: 0 1rem 1.4rem;
+        }
+
+        .lb-toolbar {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .lb-shell {
+            margin: 0 0.75rem 1.2rem;
+        }
+
+        .lb-toolbar {
+            padding: 0.5rem;
+        }
+
+        .lb-search-group {
+            grid-template-columns: minmax(0, 1fr) auto auto;
+        }
+
+        .lb-search-btn {
+            padding: 0.38rem 0.58rem;
+        }
+
+        .lb-clear-btn {
+            width: 2.25rem;
+            min-height: 2.45rem;
+        }
+
+        .lb-sort-wrap {
+            grid-template-columns: 1fr;
+            gap: 0.1rem;
+            height: auto;
+            padding: 0.42rem 0.55rem;
+        }
+
+        .lb-table th,
+        .lb-table td {
+            padding: 0.54rem 0.48rem;
+            font-size: 0.82rem;
+        }
     }
 </style>
 
-<div class="table-style">
-    <h1>Global Leaderboard</h1>
-    <br>
-    <table border="1" style="border-collapse: collapse; color: rgb(74, 74, 74); width: 100%;">
-        <tr>
-            <th>Rank</th>
-            <th>Who</th>
-            <th>Solved</th>
-        </tr>
-        {{range .Items}}
-        <tr class="{{if eq .Username $.Pusername}}yes{{else}}no{{end}}">
-            <td class="rank"></td>
-            <td><a style="text-decoration: none; color: #111;" href="/profile?username={{.Username}}"><strong>{{.Username}}</strong></a></td>
-            <td>{{.Count}} </td>
-        </tr>
-        {{else}}
-        <tr>
-            <td colspan="3" style="text-align: center;">No data found.</td>
-        </tr>
-        {{end}}
-    </table>
-</div>
+<section class="lb-shell">
+    <div class="lb-head">
+        <div class="lb-head-row">
+            <h1>Global Leaderboard</h1>
+            <button type="button" id="jump-to-my-rank" class="lb-jump-btn" data-rank-page="{{.MyRankPage}}" data-current-page="{{.Page}}">
+                Jump to my rank
+            </button>
+        </div>
 
+        <form class="lb-toolbar" method="get" action="/leaderboard">
+            <div class="lb-search-group">
+                <div class="lb-search-wrap">
+                    <span class="lb-search-icon">&#128269;</span>
+                    <input class="lb-input" type="text" name="q" value="{{.Search}}" placeholder="Search username or name" autocomplete="off">
+                </div>
+                {{if .Search}}
+                <button type="button" class="lb-clear-btn" title="Clear search" aria-label="Clear search"
+                    onclick="window.location.href='/leaderboard?sort={{.Sort}}'">&times;</button>
+                {{end}}
+                <button type="submit" class="lb-search-btn">Search</button>
+            </div>
+            <div class="lb-sort-wrap">
+                <label class="lb-sort-label" for="leaderboard-sort">Filter</label>
+                <select id="leaderboard-sort" class="lb-select" name="sort" onchange="this.form.submit()">
+                    <option value="solved_desc" {{if eq .Sort "solved_desc"}}selected{{end}}>Solved high to low</option>
+                    <option value="solved_asc" {{if eq .Sort "solved_asc"}}selected{{end}}>Solved low to high</option>
+                    <option value="username_asc" {{if eq .Sort "username_asc"}}selected{{end}}>Username A-Z</option>
+                    <option value="username_desc" {{if eq .Sort "username_desc"}}selected{{end}}>Username Z-A</option>
+                    <option value="name_asc" {{if eq .Sort "name_asc"}}selected{{end}}>Name A-Z</option>
+                    <option value="name_desc" {{if eq .Sort "name_desc"}}selected{{end}}>Name Z-A</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <div class="lb-card">
+        <div class="lb-wrap">
+            <table class="lb-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>User</th>
+                        <th>Solved</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Items}}
+                    <tr class="{{if eq .Username $.Pusername}}lb-row-current{{end}}" {{if eq .Username $.Pusername}}id="my-rank-row"{{end}}>
+                        <td class="lb-rank"><span class="lb-rank-value">{{.Rank}}</span></td>
+                        <td>
+                            <button type="button" class="lb-user-btn" data-user="{{.Username}}"
+                                onclick="window.location.href='/profile?username=' + encodeURIComponent(this.dataset.user)">
+                                {{.Username}}
+                            </button>
+                            <div class="lb-name">{{.Name}}</div>
+                        </td>
+                        <td class="lb-solved"><span class="lb-score">{{.Count}}</span></td>
+                    </tr>
+                    {{else}}
+                    <tr>
+                        <td colspan="3" class="lb-empty">No data found.</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="lb-footer">
+            <div class="lb-meta">Page {{.Page}}/{{if gt .TotalPages 0}}{{.TotalPages}}{{else}}1{{end}} • {{.Total}} users • {{.PageSize}} per page</div>
+            <div class="lb-pages">
+                {{if .HasPrev}}
+                <form class="lb-page-form" method="get" action="/leaderboard">
+                    <input type="hidden" name="q" value="{{.Search}}">
+                    <input type="hidden" name="sort" value="{{.Sort}}">
+                    <input type="hidden" name="page" value="{{.PrevPage}}">
+                    <button type="submit" class="lb-page-btn">Prev</button>
+                </form>
+                {{end}}
+
+                {{if .HasNext}}
+                <form class="lb-page-form" method="get" action="/leaderboard">
+                    <input type="hidden" name="q" value="{{.Search}}">
+                    <input type="hidden" name="sort" value="{{.Sort}}">
+                    <input type="hidden" name="page" value="{{.NextPage}}">
+                    <button type="submit" class="lb-page-btn">Next</button>
+                </form>
+                {{end}}
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    (function () {
+        var button = document.getElementById("jump-to-my-rank");
+        var row = document.getElementById("my-rank-row");
+        if (!button) return;
+
+        function highlightRow(target) {
+            target.scrollIntoView({ behavior: "smooth", block: "center" });
+            target.classList.add("lb-jump-highlight");
+            setTimeout(function () {
+                target.classList.remove("lb-jump-highlight");
+            }, 1400);
+        }
+
+        if (row) {
+            button.addEventListener("click", function () {
+                highlightRow(row);
+            });
+            return;
+        }
+
+        var rankPage = Number(button.dataset.rankPage || 0);
+        if (!rankPage) {
+            button.disabled = true;
+            button.textContent = "Rank unavailable";
+            return;
+        }
+
+        button.addEventListener("click", function () {
+            window.location.href = "/leaderboard?sort=solved_desc&page=" + encodeURIComponent(rankPage);
+        });
+    })();
+</script>
 {{end}}

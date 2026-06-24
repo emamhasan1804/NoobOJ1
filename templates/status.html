@@ -1,0 +1,332 @@
+{{define "content"}}
+<style>
+    .status-shell {
+        margin: 0 8rem 1.5rem;
+        display: grid;
+        gap: 12px;
+        color: var(--text-main);
+    }
+
+    .contest-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+    }
+
+    .contest-tab-btn {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        color: var(--text-main);
+        padding: 0.42rem 0.7rem;
+        font-size: 0.84rem;
+        font-weight: 650;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .contest-tab-btn:hover,
+    .contest-tab-btn.active {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+        color: var(--accent);
+    }
+
+    .status-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+        overflow: hidden;
+    }
+
+    .status-head {
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.16);
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .status-head h1 {
+        margin: 0;
+        font-size: 1.08rem;
+        letter-spacing: -0.01em;
+    }
+
+    .status-head p {
+        margin: 0.18rem 0 0;
+        color: var(--text-soft);
+        font-size: 0.84rem;
+    }
+
+    .contest-end-timer {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #f8fbff;
+        color: #31455f;
+        padding: 0.34rem 0.62rem;
+        font-size: 0.86rem;
+        font-weight: 650;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    .contest-end-timer strong {
+        color: var(--accent);
+        font-weight: 700;
+    }
+
+    .status-table-wrap {
+        overflow-x: auto;
+    }
+
+    .status-table {
+        width: 100%;
+        min-width: 860px;
+        border-collapse: collapse;
+    }
+
+    .status-table th,
+    .status-table td {
+        padding: 0.68rem 0.72rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.18);
+        border-right: 1px solid rgba(49, 69, 95, 0.12);
+        font-size: 0.88rem;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .status-table th:last-child,
+    .status-table td:last-child {
+        border-right: none;
+    }
+
+    .status-table th {
+        color: #31455f;
+        background: #f9fbff;
+        font-size: 0.78rem;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    .status-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .status-btn {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        color: var(--accent);
+        padding: 0.36rem 0.58rem;
+        font-size: 0.82rem;
+        font-weight: 650;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .status-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+    }
+
+    .problem-cell {
+        text-align: left;
+        min-width: 260px;
+    }
+
+    .verdict-pill {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0.22rem 0.56rem;
+        border: 1px solid var(--border);
+        background: #f8fbff;
+        color: #52657d;
+        font-size: 0.8rem;
+        font-weight: 650;
+        white-space: nowrap;
+    }
+
+    .verdict-pill.accepted {
+        background: #e8f6e2;
+        border-color: #bcdcae;
+        color: #2e5c22;
+    }
+
+    .verdict-pill.wa {
+        background: #fce9e7;
+        border-color: #efc4bf;
+        color: #8a3026;
+    }
+
+    .status-date {
+        font-weight: 650;
+        color: #1f3147;
+        line-height: 1.2;
+    }
+
+    .status-time {
+        margin-top: 0.18rem;
+        color: #6b7c91;
+        font-size: 0.8rem;
+        line-height: 1.2;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .muted-text {
+        color: var(--text-soft);
+    }
+     .problem-open-btn {
+        border: 0;
+        background: transparent;
+        color: var(--text-main);
+        padding: 0;
+        font: inherit;
+        font-weight: 650;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .problem-open-btn:hover {
+        color: var(--accent);
+    }
+
+</style>
+
+
+
+<section class="status-shell">
+   <div class="mid btns">
+        <button class="buttons" type="button" onclick="window.location.href='/contest?id={{.ID}}'">Tasks</button>
+        <button class="buttons" type="button" onclick="window.location.href='/contest/mysubmissions?id={{.ID}}'">My submissions</button>
+        <button class="buttons" type="button" style="color: var(--accent);" onclick="window.location.href='/contest/status?id={{.ID}}'">Status</button>
+        <button class="buttons" type="button" onclick="window.location.href='/contest/standings?id={{.ID}}'">Standings</button>
+                    
+    </div>
+
+    <div class="status-card">
+        <div class="status-head">
+            <div>
+                <h1>{{.Name}}</h1>
+            </div>
+            <div class="contest-end-timer" data-end-utc="{{.EndTime}}">
+                <span>Ends in</span>
+                <strong id="contest-ends-in">--:--:--</strong>
+            </div>
+        </div>
+
+        <div class="status-table-wrap">
+            <table class="status-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Time</th>
+                        <th>User</th>
+                        <th class="problem-cell">Problem</th>
+                        <th>Verdict</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .List}}
+                    <tr>
+                        <td><button type="button" class="status-btn" onclick="window.location.href='/submission?id={{.ID}}'">{{.ID}}</button></td>
+                        <td class="js-local-time" data-utc="{{.Time}}"><code>{{.Time}}</code></td>
+                        <td><button type="button" class="status-btn" onclick="window.location.href='/profile?username={{.Username}}'">{{.Username}}</button></td>
+                        <td class="problem-cell">
+                            <button type="button" class="problem-open-btn" onclick="window.location.href='/contest/task?id={{$.ID}}&&task={{.ProblemSerial}}'">
+                                {{.ProblemSerial}}. {{.ProblemTitle}}
+                            </button>
+                        </td>
+                        <td>
+                            <span class="verdict-pill {{if eq .Verdict "Accepted"}}accepted{{else}}wa{{end}}">{{.Verdict}}</span>
+                        </td>
+                    </tr>
+                    {{else}}
+                    <tr>
+                        <td colspan="5" class="muted-text">No submissions found.</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<script>
+    (function () {
+        var timer = document.querySelector(".contest-end-timer");
+        var output = document.getElementById("contest-ends-in");
+        if (!timer || !output) return;
+
+        function parseUTC(value) {
+            var match = String(value || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+            if (!match) return null;
+            return new Date(Date.UTC(
+                Number(match[1]),
+                Number(match[2]) - 1,
+                Number(match[3]),
+                Number(match[4]),
+                Number(match[5]),
+                Number(match[6] || 0)
+            ));
+        }
+
+        function pad(value) {
+            return String(value).padStart(2, "0");
+        }
+
+        function render() {
+            var end = parseUTC(timer.dataset.endUtc);
+            if (!end) {
+                output.textContent = "--:--:--";
+                return;
+            }
+
+            var remaining = end.getTime() - Date.now();
+            if (remaining <= 0) {
+                output.textContent = "Finished";
+                return;
+            }
+
+            var totalSeconds = Math.floor(remaining / 1000);
+            var hours = Math.floor(totalSeconds / 3600);
+            var minutes = Math.floor((totalSeconds % 3600) / 60);
+            var seconds = totalSeconds % 60;
+
+            output.textContent = hours + ":" + pad(minutes) + ":" + pad(seconds);
+        }
+
+
+        function renderLocalTimes() {
+            document.querySelectorAll(".js-local-time").forEach(function (cell) {
+                var date = parseUTC(cell.dataset.utc);
+                if (!date) return;
+                var localDate = date.toLocaleDateString([], {
+                    year: "numeric",
+                    month: "short",
+                    day: "2-digit"
+                });
+                var localTime = date.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit"
+                });
+                cell.innerHTML = '<div class="status-date">' + localDate + '</div><div class="status-time">' + localTime + '</div>';
+            });
+        }
+
+        renderLocalTimes();
+        render();
+        setInterval(render, 1000);
+    })();
+</script>
+{{end}}

@@ -3,16 +3,54 @@
 
 <head>
     <title>{{if .Title}}{{.Title}}{{else}}NoobOJ{{end}}</title>
+    <link rel="icon" href="/static/logo.png">
     <style>
+        :root {
+            --surface: #ffffff;
+            --border: #d7dee9;
+            --text-main: #162335;
+            --text-soft: #4e5d73;
+            --accent: #1f4e7a;
+            --accent-soft: #edf4fb;
+            --radius-lg: 14px;
+            --radius-md: 8px;
+            --shadow-card: 0 8px 24px rgba(34, 53, 80, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f7faff;
+            color: var(--text-main);
+            font-family: "Space Grotesk", "Avenir Next", "Trebuchet MS", sans-serif;
+        }
+
         .nav {
-            border: 1px solid rgb(74, 74, 74);
             display: flex;
             justify-content: space-between;
-            margin-left: 8rem;
-            margin-right: 8rem;
-            padding-left: 2rem;
-            padding-right: 2rem;
+            gap: 16px;
+            margin: 1rem 8rem 0;
+            padding: 0.9rem 1.25rem;
             align-items: center;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            box-shadow: var(--shadow-card);
+        }
+
+        .nav-brand {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            font-family: inherit;
+            color: var(--text-main);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            font-size: 1.35rem;
         }
 
         input[type="text"],
@@ -22,20 +60,126 @@
             width: 100%;
             padding: 10px;
             margin-top: 6px;
-            border: 1px solid #ddd;
+            border: 1px solid #d4dbe6;
             border-radius: 6px;
             font-size: 14px;
             box-sizing: border-box;
+            background: #ffffff;
         }
 
         .mid {
             display: flex;
-            justify-content: space-evenly;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-main);
+            background: #f5f8fc;
+            border: 1px solid var(--border);
+            font-size: 0.88rem;
+            font-weight: 600;
+            padding: 0.38rem 0.58rem;
+            border-radius: var(--radius-md);
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .nav-link:hover {
+            background: var(--accent-soft);
+            color: var(--accent);
+            border-color: #c7d8ec;
+        }
+
+        .nav-link.admin {
+            color: #b5483d;
+            background: #fff5f4;
+            border-color: rgba(231, 50, 36, 0.5);
+            border-radius: 999px;
+            box-shadow: 0 0 0 1px rgba(231, 50, 36, 0.42), 0 0 11px rgba(231, 50, 36, 0.22);
+            animation: adminGlow 2.4s ease-in-out infinite;
+        }
+
+        .nav-link.admin:hover {
+            color: #8f1f18;
+            background: #ffeceb;
+            border-color: rgba(231, 50, 36, 0.75);
+        }
+        @keyframes adminGlow {
+            0%,
+            100% {
+                box-shadow: 0 0 0 1px rgba(231, 50, 36, 0.42), 0 0 11px rgba(231, 50, 36, 0.22);
+            }
+
+            50% {
+                box-shadow: 0 0 0 2px rgba(231, 50, 36, 0.55), 0 0 18px rgba(231, 50, 36, 0.36);
+            }
+        }
+
+        .nav-search {
+            margin-left: 0.4rem;
+        }
+
+        .nav-search input[type="text"] {
+            width: 126px;
+            margin: 0;
+            padding: 8px 10px;
+            font-size: 13px;
+            border-radius: var(--radius-md);
+            border-color: #d4dbe6;
+            background: #fbfdff;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-user {
+            text-decoration: none;
+            color: var(--accent);
+            background: #f5f8fc;
+            border: 1px solid var(--border);
+            font-size: 0.88rem;
+            font-weight: 700;
+            padding: 0.38rem 0.58rem;
+            border-radius: var(--radius-md);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .nav-user:hover {
+            background: var(--accent-soft);
+            border-color: #c7d8ec;
+        }
+
+        .nav-auth {
+            text-decoration: none;
+            color: #ffffff;
+            background: #16395b;
+            border: 1px solid #16395b;
+            border-radius: var(--radius-md);
+            font-size: 0.86rem;
+            font-weight: 700;
+            padding: 0.45rem 0.8rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .nav-auth:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 7px 16px rgba(22, 57, 91, 0.2);
+        }
+
+        .page-gap {
+            height: 0.85rem;
         }
 
         table tr:nth-child(even) {
@@ -45,55 +189,89 @@
         table tr:nth-child(odd) {
             background-color: #f1f1f1;
         }
+
+        @media (max-width: 1100px) {
+            .nav {
+                margin: 1rem 1rem 0;
+                flex-wrap: wrap;
+            }
+
+            .mid {
+                order: 3;
+                width: 100%;
+                padding-top: 0.3rem;
+                border-top: 1px solid #edf2f8;
+            }
+        }
+
+        .buttons{
+        text-decoration: none;
+        color: var(--text-main);
+        border: none;
+        background: #f5f8fc;
+        font-size: 0.80rem;
+        font-weight: 600;
+        margin-top: 10px;
+        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        cursor: pointer;
+        font-family: inherit;
+    }
+    .buttons:hover{
+        color: var(--accent);
+    }
+
+
+
     </style>
 </head>
 
 <body>
-    <br>
+
     <div class="nav">
-        <a style="text-decoration: none;color: rgb(0, 0, 0);letter-spacing: -1px;" href="/">
-            <h2>NoobOJ</h2>
-        </a>
+        <button class="nav-brand" type="button" onclick="window.location.href='/'">
+            NoobOJ
+        </button>
         <div class="mid">
-            <a style="margin-left: 1rem;margin-right: 1rem;text-decoration: none;color: rgb(74, 74, 74);" href="/">
-                <h3>Home</h3>
-            </a>
-            <a style="margin-left: 1rem;margin-right: 1rem;text-decoration: none;color: rgb(74, 74, 74);"
-                href="/contests">
-                <h3>Contest</h3>
-            </a>
-            <a style="margin-left: 1rem;margin-right: 1rem;text-decoration: none;color: rgb(74, 74, 74);"
-                href="/problemset">
-                <h3>Problemset</h3>
-            </a>
-            <a style="margin-left: 1rem;margin-right: 1rem;text-decoration: none;color: rgb(74, 74, 74);"
-                href="/leaderboard">
-                <h3>Leaderboard</h3>
-            </a>
+            <button class="nav-link" type="button" onclick="window.location.href='/'">Home</button>
+            <button class="nav-link" type="button" onclick="window.location.href='/contests'">Contest</button>
+            <button class="nav-link" type="button" onclick="window.location.href='/problemset'">Problemset</button>
+            <button class="nav-link" type="button" onclick="window.location.href='/leaderboard'">Leaderboard</button>
             {{if .Admin}}
-            <a style="margin-left: 1rem;margin-right: 1rem;text-decoration: none;color: rgb(228, 44, 44);"
-                href="/administration">
-                <h3>Administration</h3>
-            </a>
-
+            <button class="nav-link admin" type="button"
+                onclick="window.location.href='/administration'">Administration</button>
             {{end}}
-            <form action="/profile" method="GET">
-                <input style="width: 100px;" type="text" name="username" placeholder="Find user" required>
+            <form class="nav-search" action="/profile" method="GET">
+                <input type="text" name="username" placeholder="Find user" required>
             </form>
-
-
         </div>
-        <div style="display: flex;">
-            <a style="text-decoration: none;color: rgb(68, 44, 228);" href="/profile?username={{.Pusername}}">
-                <h3>{{.Pusername}}</h3>
-            </a>
-            <a style="margin-left: 1rem;margin-right: 1rem;text-decoration: none;color: rgb(68, 44, 228);"
-                href="/logout">
-                <h3>{{if .Logout}}{{.Logout}}{{else}}Logout{{end}}</h3>
-            </a>
+        <div class="nav-right">
+            {{if eq .Pusername "Login"}}
+            <button class="nav-user" type="button" data-href="/login"
+                onclick="window.location.href=this.dataset.href">
+                Login
+            </button>
+            <button class="nav-auth" type="button" onclick="window.location.href='/register'">Register
+            </button>
+            {{else if eq .Pusername ""}}
+            <button class="nav-user" type="button" data-href="/login"
+                onclick="window.location.href=this.dataset.href">
+                Login
+            </button>
+            <button class="nav-auth" type="button" onclick="window.location.href='/register'">Register
+            </button>
+            {{else}}
+            <button class="nav-user" type="button" data-href="/profile?username={{.Pusername}}"
+                onclick="window.location.href=this.dataset.href">
+                {{.Pusername}}
+            </button>
+            <button class="nav-auth" type="button" onclick="window.location.href='/logout'">Logout
+            </button>
+            {{end}}
+
         </div>
     </div>
 
+    <div class="page-gap"></div>
     <br>
     {{template "content" .}}
     {{template "footer" .}}

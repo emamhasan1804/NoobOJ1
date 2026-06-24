@@ -1,191 +1,583 @@
 {{define "content"}}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <style>
+    .problem-shell {
+        margin: 0 8rem 1.5rem;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 250px;
+        gap: 12px;
+        color: var(--text-main);
+    }
+
+    .problem-main,
+    .problem-side-card,
+    .submit-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: none;
+        overflow: hidden;
+    }
+
+    .problem-header {
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.22);
+        background: #ffffff;
+        text-align: center;
+    }
+
+    .problem-header h1 {
+        margin: 0;
+        color: #1f3147;
+        font-size: 1.55rem;
+        font-weight: 800;
+        letter-spacing: 0;
+    }
+
+    .problem-limits {
+        margin-top: 0.42rem;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.55rem;
+    }
+
+    .limit-chip,
+    .tag-chip {
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        color: #61758c;
+        padding: 0;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    .tag-chip {
+        cursor: pointer;
+        font-family: inherit;
+        transition: color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .tag-chip:hover {
+        color: var(--accent);
+        text-decoration: none;
+    }
+
+    .author-btn {
+        margin-top: 0.58rem;
+        border: none;
+        background: transparent;
+        color: var(--accent);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 0.84rem;
+        font-weight: 700;
+    }
+
+    .problem-content {
+        padding: 0.95rem 1rem 1.05rem;
+        display: grid;
+        gap: 0.9rem;
+    }
+
+    .statement-section h2,
+    .submit-card h2,
+    .problem-side-card h2 {
+        margin: 0 0 0.45rem;
+        color: #1f3147;
+        font-size: 0.95rem;
+        letter-spacing: 0;
+    }
+
     .text-with-enter {
         white-space: pre-wrap;
         word-wrap: break-word;
-        line-height: 1.6;
+        line-height: 1.58;
+        color: #26384d;
+        font-size: 0.92rem;
+    }
+
+    .sample-card {
+        border: 1px solid rgba(49, 69, 95, 0.2);
+        border-radius: 6px;
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .sample-title {
+        padding: 0.46rem 0.62rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.18);
+        background: #fbfdff;
+        color: #31455f;
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+
+    .sample-block + .sample-block {
+        border-top: 1px solid rgba(49, 69, 95, 0.18);
+    }
+
+    .sample-block-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.62rem;
+        background: #fbfdff;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.14);
+        color: #4e5d73;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .sample-copy-btn,
+    .side-btn,
+    .submit-btn {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #f5f8fc;
+        color: var(--text-main);
+        padding: 0.34rem 0.58rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .sample-copy-btn:hover,
+    .side-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+        color: var(--accent);
+    }
+
+    .sample-code {
+        display: block;
+        padding: 0.62rem;
+        background: #ffffff;
+        color: #26384d;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 0.86rem;
+    }
+
+    .submit-card {
+        margin-top: 14px;
+    }
+
+    .submit-card-head {
+        padding: 0.78rem 1rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.22);
+        background: #ffffff;
+    }
+
+    .submit-form {
+        padding: 0.9rem 1rem 1rem;
+        display: grid;
+        gap: 0.7rem;
+    }
+
+    .submit-label {
+        color: #4e5d73;
+        font-size: 0.84rem;
+        font-weight: 800;
+    }
+
+    .code-editor {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .code-editor:focus-within {
+        border-color: #9fbbdc;
+        box-shadow: 0 0 0 3px rgba(31, 78, 122, 0.11);
+    }
+
+    .submit-code {
+        width: 100%;
+        min-height: 360px;
+        margin: 0;
+        resize: vertical;
+        border: none;
+        border-radius: 0;
+        background: #ffffff;
+        color: #162335;
+        padding: 0.75rem;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 0.88rem;
+        line-height: 1.5;
+        outline: none;
+        tab-size: 4;
+    }
+
+    .CodeMirror {
+        height: 360px;
+        color: #162335;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 0.88rem;
+        line-height: 1.5;
+    }
+
+    .CodeMirror-gutters {
+        border-right: 1px solid rgba(49, 69, 95, 0.16);
+        background: #fbfdff;
+    }
+
+    .CodeMirror-linenumber {
+        color: #8a98aa;
+    }
+
+    .cm-s-default .cm-keyword {
+        color: #1f4e7a;
+        font-weight: 700;
+    }
+
+    .cm-s-default .cm-string {
+        color: #8a4a12;
+    }
+
+    .cm-s-default .cm-comment {
+        color: #6c7f93;
+        font-style: italic;
+    }
+
+    .cm-s-default .cm-number {
+        color: #246641;
+    }
+
+    .cm-s-default .cm-def,
+    .cm-s-default .cm-variable-2 {
+        color: #7a3d7c;
+    }
+
+    .submit-actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .submit-btn {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #ffffff;
+        padding: 0.42rem 0.85rem;
+    }
+
+    .submit-btn:hover {
+        background: #163c60;
+        border-color: #163c60;
+    }
+
+    .problem-sidebar {
+        display: grid;
+        gap: 14px;
+        align-content: start;
+    }
+
+    .problem-side-card {
+        padding: 0.75rem;
+    }
+
+    .side-btn {
+        width: 100%;
+        min-height: 2.25rem;
+        margin-bottom: 0.55rem;
+    }
+
+    .side-btn:last-child {
+        margin-bottom: 0;
+    }
+
+    .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.42rem;
+        line-height: 1.5;
+    }
+
+    .muted-text {
+        color: #71839a;
+        font-size: 0.86rem;
+    }
+
+    .submission-list {
+        display: grid;
+        gap: 0.5rem;
+    }
+
+    .submission-item {
+        border: 1px solid rgba(49, 69, 95, 0.16);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        padding: 0.55rem;
+        display: grid;
+        gap: 0.24rem;
+    }
+
+    .submission-item:has(.accepted) {
+        border-left: 3px solid rgba(35, 128, 77, 0.45);
+    }
+
+    .submission-item:has(.wa) {
+        border-left: 3px solid rgba(231, 50, 36, 0.38);
+    }
+
+    .submission-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .submission-link {
+        border: none;
+        background: transparent;
+        color: var(--accent);
+        padding: 0;
+        font: inherit;
+        font-size: 0.84rem;
+        font-weight: 650;
+        cursor: pointer;
+    }
+
+    .submission-time {
+        color: #61758c;
+        font-size: 0.76rem;
+        line-height: 1.35;
+    }
+
+    .verdict {
+        border-radius: 999px;
+        padding: 0.12rem 0.42rem;
+        font-size: 0.72rem;
+        font-weight: 650;
+        white-space: nowrap;
     }
 
     .accepted {
-        color: rgb(5, 146, 5);
+        background: #edf8f2;
+        color: #246641;
     }
 
     .wa {
-        color: rgb(218, 15, 15);
+        background: #fff5f4;
+        color: #9e3026;
+    }
+
+    @media (max-width: 1100px) {
+        .problem-shell {
+            margin: 0 1rem 1.4rem;
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .problem-shell {
+            margin: 0 0.75rem 1.2rem;
+        }
+
+        .problem-header,
+        .problem-content,
+        .submit-form,
+        .submit-card-head {
+            padding-left: 0.82rem;
+            padding-right: 0.82rem;
+        }
+
+        .submit-code {
+            min-height: 280px;
+        }
+
+        .CodeMirror {
+            height: 280px;
+        }
     }
 </style>
-<div
-    style="margin-left: 8rem;margin-right: 8rem; display: flex; justify-content: space-between;color: rgb(74, 74, 74);">
-    <div style=" width: 75%; color: RGB(34,34,34);">
-        <h2 style="display: flex;justify-content: center;">{{.Ptitle}}</h2>
-        <p style="display: flex;justify-content: center; margin: 0px;">
-            Time Limit: {{.Time}} {{if eq .Time .One}}second{{else}}seconds{{end}}
-        </p>
-        <p style="display: flex;justify-content: center; margin: 0px;">
-            Memory Limit: {{.Memory}} megabytes
-        </p>
-        <hr>
-        <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
-            <a style="text-decoration: none;" href="/profile?username={{.Author}}">
-                <h6 style="margin: 0px; color: rgb(60, 0, 255);">Problem Author: {{.Author}}</h6>
-            </a>
 
-        </div>
-        <hr>
-        <br>
-        <div class="text-with-enter">{{.Statement }}</div>
-        <br><br>
-        <b>Input</b> <br>
-        <div class="text-with-enter">{{.Input}}</div>
-        <br><br>
-        <b>Output</b> <br>
-        <div class="text-with-enter">{{.Output}}</div>
-        <br><br>
-        {{if .Constraints}}
-        <b>Constraints</b> <br>
-        <div class="text-with-enter">{{.Constraints}}</div>
+<section class="problem-shell">
+    <div>
+        <article class="problem-main">
+            <header class="problem-header">
+                <h1>{{.Ptitle}}</h1>
+                <div class="problem-limits">
+                    <span class="limit-chip">Time: {{.Time}} {{if eq .Time .One}}second{{else}}seconds{{end}}</span>
+                    <span class="limit-chip">Memory: {{.Memory}} MB</span>
+                </div>
+                <button type="button" class="author-btn" data-user="{{.Author}}"
+                    onclick="window.location.href='/profile?username=' + encodeURIComponent(this.dataset.user)">
+                    Author: {{.Author}}
+                </button>
+            </header>
 
-        <br><br>
-        {{end}}
-        {{if .Items}}
-        <b>Examples</b>
-        <br><br>
-        {{range $index, $item := .Items}}
+            <div class="problem-content">
+                <section class="statement-section">
+                    <h2>Statement</h2>
+                    <div class="text-with-enter">{{.Statement}}</div>
+                </section>
 
+                <section class="statement-section">
+                    <h2>Input</h2>
+                    <div class="text-with-enter">{{.Input}}</div>
+                </section>
 
-        <div style="font-size: medium;"><strong>Sample Test {{$index}}</strong></div>
-        <table style="border-collapse: collapse; width: 100%;">
+                <section class="statement-section">
+                    <h2>Output</h2>
+                    <div class="text-with-enter">{{.Output}}</div>
+                </section>
 
-            <tr style="text-align: left;">
-                <th style="padding: 5px; font-size: medium;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <code>input</code>
-                        <button onclick="copyInput()">copy</button>
-                    </div>
-                </th>
-            </tr>
-            <tr style="text-align: left;">
-                <td style="white-space: normal; vertical-align: top; padding: 0.5rem;">
-                    <code class="text-with-enter" id="input">{{.Input}}</code>
-                </td>
-            </tr>
-            <tr style="text-align: left;">
-                <th style="padding: 5px; font-size: medium;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <code>output</code>
-                        <button onclick="copyOutput()">copy</button>
-                    </div>
-                </th>
-            </tr>
-            <tr style="text-align: left;">
-                <td style="white-space: normal; vertical-align: top; padding: 0.5rem;">
-                    <code class="text-with-enter" id="output">{{.Output}}</code>
-                </td>
-            </tr>
+                {{if .Constraints}}
+                <section class="statement-section">
+                    <h2>Constraints</h2>
+                    <div class="text-with-enter">{{.Constraints}}</div>
+                </section>
+                {{end}}
 
-        </table>
-        <br><br>
-        {{end}}
-
-        {{end}}
-
-        <code style="font-size: large;">Submit solution</code>
-        <form action="/submit" method="POST">
-            <input type="hidden" name="problem_id" value="{{.ID}}">
-            <div style="display: flex; align-items: center; margin-left: 5rem;">
-                <code>Source code:</code>
-                <textarea name="code" placeholder="Paste your c++ code here"
-                    style="width: 40rem; height: 25rem; resize: none;margin-left: 1rem;"></textarea></code>
-            </div>
-            <br>
-            <div style="display: flex;justify-content: center;margin-left: 5rem;">
-                <input
-                    style="font-size: 1rem; padding-top: 2px; padding-bottom: 2px;padding-left: 10px;padding-right: 10px;"
-                    type="submit" value="Submit">
-            </div>
-        </form>
-    </div>
-
-
-    <div style="width: 20%; margin-top: 70px;">
-
-        <style>
-            th,
-            td {
-                border: 1px solid rgb(74, 74, 74);
-                text-align: left;
-                padding: 8px;
-            }
-        </style>
-        <a href="/submissions/problem?id={{.ID}}"><button
-                style="font-size: 1rem; padding-top: 5px; width: 100%; padding-bottom: 5px;padding-left: 10px;padding-right: 10px; margin-bottom: 2rem;">view
-                all submissions</button>
-        </a>
-        <table class="tags" style="border-collapse: collapse; width: 100%; resize: none; margin-bottom: 2rem;">
-            <tr>
-                <th style="color: rgb(60, 0, 255);">Problem tags</th>
-            </tr>
-            <tr>
-                <td style="border: 1px solid black; padding: 20px; padding-bottom: 30px;">
-                    <div style="display: flex; flex-wrap: wrap; gap: 5px;">
-                        {{if .Tags}}
-                        {{range .Tags}}
-                        <div
-                            style="border: 1px solid black;  font-size: small; background-color: rgb(239, 239, 239); padding: 3px 8px;">
-                            {{.}}
+                {{if .Items}}
+                <section class="statement-section">
+                    <h2>Examples</h2>
+                    {{range .Items}}
+                    <div class="sample-card">
+                        <div class="sample-title">Sample Test {{.Number}}</div>
+                        <div class="sample-block">
+                            <div class="sample-block-head">
+                                <span>Input</span>
+                                <button type="button" class="sample-copy-btn" data-copy="{{.Input}}">Copy</button>
+                            </div>
+                            <code class="sample-code text-with-enter">{{.Input}}</code>
                         </div>
-                        {{end}}
-                        {{else}}
-            <tr>
-                <td style="text-align: center;">No tags found</td>
-            </tr>
-            {{end}}
+                        <div class="sample-block">
+                            <div class="sample-block-head">
+                                <span>Output</span>
+                                <button type="button" class="sample-copy-btn" data-copy="{{.Output}}">Copy</button>
+                            </div>
+                            <code class="sample-code text-with-enter">{{.Output}}</code>
+                        </div>
+                    </div>
+                    <br>
+                    {{end}}
+                </section>
+                {{end}}
+            </div>
+        </article>
+
+        <section class="submit-card">
+            <div class="submit-card-head">
+                <h2>Submit Solution</h2>
+            </div>
+            <form class="submit-form" action="/submit" method="POST">
+                <input type="hidden" name="problem_id" value="{{.ID}}">
+                <input type="hidden" name="contest" value="false">
+                <label class="submit-label" for="solution-code">Source code</label>
+                <div class="code-editor">
+                    <textarea id="solution-code" class="submit-code" name="code" placeholder="Paste your C++ code here"
+                        spellcheck="false" autocapitalize="off" autocomplete="off" required></textarea>
+                </div>
+                <div class="submit-actions">
+                    <button type="submit" class="submit-btn">Submit</button>
+                </div>
+            </form>
+        </section>
     </div>
-    </td>
-    </tr>
 
-    </table>
-    <a href="/editorial/problem?id={{.ID}}"><button
-            style="font-size: 1rem; padding-top: 5px; width: 100%; padding-bottom: 5px;padding-left: 10px;padding-right: 10px; margin-bottom: 2rem;">
-            Editorial</button>
-    </a>
+    <aside class="problem-sidebar">
+        <div class="problem-side-card">
+            <button type="button" class="side-btn" onclick="window.location.href='/submissions/problem?id={{.ID}}'">
+                View all submissions
+            </button>
+            <button type="button" class="side-btn" onclick="window.location.href='/editorial?id={{.ID}}'">
+                Editorial
+            </button>
+        </div>
 
-    <table style="border-collapse: collapse; width: 100%;margin-bottom: 2rem;">
-        <tr>
-            <th colspan="3" style="color: rgb(60, 0, 255);">Last submissions</th>
-        </tr>
-        <tr style="font-size: small;">
-            <th style="width: 2rem;text-align: left;">#</th>
-            <th>time</th>
-            <th>verdict</th>
-        </tr>
-        {{if .Subs}}
-        {{range .Subs}}
-        <tr style="font-size: x-small;">
-            <td><a href="/submission?id={{.Submission}}">{{.Submission}}</a></td>
-            <td><code>{{.Time}}</code></td>
-            <td class="{{if eq .Verdict .Accepted}}accepted{{else}}wa{{end}}"><b>{{.Verdict}}</b></td>
-        </tr>
-        {{end}}
-        {{else}}
-        <tr>
-            <td colspan="3" style="text-align: center;">No submissions found.</td>
-        </tr>
-        {{end}}
-    </table>
+        <div class="problem-side-card">
+            <h2>Problem Tags</h2>
+            <div class="tag-list">
+                {{if .Tags}}
+                {{range .Tags}}
+                <button type="button" class="tag-chip" data-query="{{.}}">{{.}}</button>
+                {{end}}
+                {{else}}
+                <span class="muted-text">No tags found.</span>
+                {{end}}
+            </div>
+        </div>
 
-</div>
-</div>
+        <div class="problem-side-card">
+            <h2>Last Submissions</h2>
+            <div class="submission-list">
+                {{if .Subs}}
+                {{range .Subs}}
+                <div class="submission-item">
+                    <div class="submission-top">
+                        <button type="button" class="submission-link" onclick="window.location.href='/submission?id={{.Submission}}'">
+                            #{{.Submission}}
+                        </button>
+                        <span class="verdict {{if eq .Verdict .Accepted}}accepted{{else}}wa{{end}}">{{.Verdict}}</span>
+                    </div>
+                    <div class="submission-time">{{.Time}}</div>
+                </div>
+                {{end}}
+                {{else}}
+                <span class="muted-text">No submissions found.</span>
+                {{end}}
+            </div>
+        </div>
+    </aside>
+</section>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
 <script>
-    function copyInput() {
-        const text = document.getElementById("input").innerText;
-        navigator.clipboard.writeText(text).then
-    }
-    function copyOutput() {
-        const text = document.getElementById("output").innerText;
-        navigator.clipboard.writeText(text).then
-    }
+    document.querySelectorAll(".sample-copy-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            navigator.clipboard.writeText(this.getAttribute("data-copy") || "");
+            this.textContent = "Copied";
+            var button = this;
+            setTimeout(function () { button.textContent = "Copy"; }, 900);
+        });
+    });
+
+    document.querySelectorAll(".tag-chip").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            var query = this.getAttribute("data-query") || "";
+            if (query.charAt(0) === "*") query = query.slice(1);
+            window.location.href = "/problemset?q=" + encodeURIComponent(query) + "&sort=id_asc";
+        });
+    });
+
+    (function () {
+        var textarea = document.getElementById("solution-code");
+        if (!textarea || !window.CodeMirror) return;
+
+        var editor = CodeMirror.fromTextArea(textarea, {
+            mode: "text/x-c++src",
+            lineNumbers: true,
+            indentUnit: 4,
+            tabSize: 4,
+            indentWithTabs: false,
+            autoCloseBrackets: true,
+            lineWrapping: false,
+            viewportMargin: Infinity,
+            extraKeys: {
+                Tab: function (cm) {
+                    if (cm.somethingSelected()) {
+                        cm.indentSelection("add");
+                    } else {
+                        cm.replaceSelection("    ", "end");
+                    }
+                }
+            }
+        });
+
+        editor.on("change", function (cm) {
+            cm.save();
+        });
+    })();
 </script>
 
 {{end}}

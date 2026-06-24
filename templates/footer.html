@@ -1,43 +1,122 @@
 {{define "footer"}}
+<style>
+    .footer-shell {
+        margin: 1rem 8rem 1.5rem;
+        padding: 0.95rem 1.25rem;
+        /* border: 1px solid var(--border);
+        border-radius: var(--radius-lg); */
+        /* background: var(--surface); */
+        /* box-shadow: var(--shadow-card); */
+        color: #4e5d73;
+        font-family: "Space Grotesk", "Avenir Next", "Trebuchet MS", sans-serif;
+        height: 200px;
+    }
 
-<footer style=" border-top: 1px solid rgb(231, 231, 231); padding: 60px 20px 40px 20px;margin-top: 50px;">
-    
-    <div style="max-width: 1100px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 40px;">
-        
-        <div style="flex: 1; min-width: 250px;">
-            <h2 style="font-size: 24px; font-weight: 800; color: #000; margin: 0 0 15px 0; letter-spacing: -1px;">NoobOJ</h2>
-            <p style="color: #666; line-height: 1.6; font-size: 14px; max-width: 280px;">
-                The beginner friendly online judge. Practice coding, compete in contests, and grow your skills.
-            </p>
-        </div>
+    .footer-main {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.9rem;
+    }
 
-        <div style="flex: 0 1 150px;">
-            <h4 style="font-size: 14px; font-weight: 700; color: #000; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 1px;">Platform</h4>
-            <ul style="list-style: none; padding: 0; margin: 0; line-height: 2.2; font-size: 14px;">
-                <li><a href="/problemset" style="color: #666; text-decoration: none;">Problemset</a></li>
-                <li><a href="/leaderboard" style="color: #666; text-decoration: none;">Leaderboard</a></li>
-                <li><a href="/" style="color: #666; text-decoration: none;">Contests</a></li>
-            </ul>
-        </div>
+    .footer-brand {
+        margin: 0;
+        color: var(--text-main);
+        font-weight: 700;
+        letter-spacing: -0.01em;
+    }
 
-        <div style="flex: 0 1 150px;">
-            <h4 style="font-size: 14px; font-weight: 700; color: #000; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 1px;">Support</h4>
-            <ul style="list-style: none; padding: 0; margin: 0; line-height: 2.2; font-size: 14px;">
-                <li><a href="/" style="color: #666; text-decoration: none;">Documentation</a></li>
-                <li><a href="/" style="color: #666; text-decoration: none;">FAQ</a></li>
-                <li><a href="/" style="color: #666; text-decoration: none;">Community</a></li>
-            </ul>
-        </div>
-    </div>
+    .footer-copy {
+        margin: 0;
+    }
 
-    <div style="max-width: 1100px; margin: 60px auto 0 auto; padding-top: 20px; border-top: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
-        <p style="color: #999; font-size: 13px; margin: 0;">
-            &COPY; 2026 NoobOJ. Built for the coding community.
+    .footer-clock {
+        margin: 0;
+        color: var(--text-soft);
+        font-size: 0.86rem;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    .footer-clock strong {
+        color: var(--text-main);
+        font-weight: 700;
+    }
+
+    .footer-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .footer-links button {
+        text-decoration: none;
+        color: var(--text-main);
+        background: #f5f8fc;
+        border: 1px solid var(--border);
+        padding: 0.34rem 0.56rem;
+        border-radius: var(--radius-md);
+        font-size: 0.84rem;
+        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .footer-links button:hover {
+        background: var(--accent-soft);
+        color: var(--accent);
+        border-color: #c7d8ec;
+    }
+</style>
+
+<footer class="footer-shell">
+    <hr style="opacity: 50%; margin-bottom: 2rem;">
+    <div class="footer-main">
+        <p class="footer-brand">NoobOJ</p>
+        <p class="footer-copy">&copy; 2026 NoobOJ</p>
+        <p id="footer-client-time" class="footer-clock">
+            <strong>Local time:</strong> <span id="footer-live-time">--:--:--</span>
+            <span id="footer-live-zone">UTC</span>
         </p>
-        <div style="display: flex; gap: 20px;">
-            <a href="/" style="color: #999; text-decoration: none; font-size: 13px;">Privacy Policy</a>
-            <a href="/" style="color: #999; text-decoration: none; font-size: 13px;">Terms of Service</a>
+        <div class="footer-links">
+            <button type="button" onclick="window.location.href='/'">Home</button>
+            <button type="button" onclick="window.location.href='/problemset'">Problemset</button>
+            <button type="button" onclick="window.location.href='/contests'">Contests</button>
+            <button type="button" onclick="window.location.href='/leaderboard'">Leaderboard</button>
         </div>
     </div>
 </footer>
+<script>
+    (function () {
+        var timeNode = document.getElementById("footer-live-time");
+        var zoneNode = document.getElementById("footer-live-zone");
+        if (!timeNode || !zoneNode) return;
+
+        function utcOffsetLabel(date) {
+            var totalMinutes = -date.getTimezoneOffset();
+            var sign = totalMinutes >= 0 ? "+" : "-";
+            var absMinutes = Math.abs(totalMinutes);
+            var hours = String(Math.floor(absMinutes / 60)).padStart(2, "0");
+            var mins = String(absMinutes % 60).padStart(2, "0");
+            return "UTC" + sign + hours + ":" + mins;
+        }
+
+        function updateClientTime() {
+            var now = new Date();
+            var zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local";
+            var timeText = now.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+            });
+            timeNode.textContent = timeText;
+            zoneNode.textContent = zone + " (" + utcOffsetLabel(now) + ")";
+        }
+
+        updateClientTime();
+        setInterval(updateClientTime, 1000);
+    })();
+</script>
 {{end}}

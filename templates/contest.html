@@ -1,0 +1,297 @@
+{{define "content"}}
+<style>
+    .contest-view-shell {
+        margin: 0 8rem 1.5rem;
+        display: grid;
+        gap: 12px;
+        color: var(--text-main);
+    }
+
+    .contest-view-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+        overflow: hidden;
+    }
+
+    .contest-view-head {
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.16);
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .contest-view-head h1 {
+        margin: 0;
+        font-size: 1.08rem;
+        letter-spacing: -0.01em;
+    }
+
+    .contest-view-head p {
+        margin: 0;
+        color: var(--text-soft);
+        font-size: 0.84rem;
+    }
+
+    .contest-end-timer {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #f8fbff;
+        color: #31455f;
+        padding: 0.34rem 0.62rem;
+        font-size: 0.86rem;
+        font-weight: 650;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    .contest-end-timer strong {
+        color: var(--accent);
+        font-weight: 700;
+    }
+
+    .contest-table-wrap {
+        overflow-x: auto;
+    }
+
+    .contest-problem-table {
+        width: 100%;
+        min-width: 860px;
+        border-collapse: collapse;
+    }
+
+    .contest-problem-table th,
+    .contest-problem-table td {
+        padding: 0.68rem 0.72rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.18);
+        border-right: 1px solid rgba(49, 69, 95, 0.12);
+        font-size: 0.88rem;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .contest-problem-table th:last-child,
+    .contest-problem-table td:last-child {
+        border-right: none;
+    }
+
+    .contest-problem-table th {
+        color: #31455f;
+        background: #f9fbff;
+        font-size: 0.78rem;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    .contest-problem-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .contest-problem-table tbody tr.solved-row {
+        background: rgba(232, 246, 226, 0.45);
+    }
+
+    .contest-problem-table tbody tr.attempted-row {
+        background: rgba(252, 233, 231, 0.32);
+    }
+
+    .problem-title-cell {
+        text-align: left;
+        min-width: 260px;
+    }
+
+    .problem-open-btn {
+        border: 0;
+        background: transparent;
+        color: var(--text-main);
+        padding: 0;
+        font: inherit;
+        font-weight: 650;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .problem-open-btn:hover {
+        color: var(--accent);
+    }
+
+    .status-pill {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0.22rem 0.56rem;
+        border: 1px solid var(--border);
+        background: #f8fbff;
+        color: #52657d;
+        font-size: 0.8rem;
+        font-weight: 650;
+        white-space: nowrap;
+    }
+
+    .status-pill.solved {
+        background: #e8f6e2;
+        border-color: #bcdcae;
+        color: #2e5c22;
+    }
+
+    .status-pill.attempted {
+        background: #fce9e7;
+        border-color: #efc4bf;
+        color: #8a3026;
+    }
+
+    .muted-text {
+        color: var(--text-soft);
+    }
+
+    .serial-badge {
+        display: inline-flex;
+        min-width: 28px;
+        height: 28px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #f8fbff;
+        color: var(--accent);
+        font-weight: 700;
+        cursor: pointer;
+    }
+    
+    
+    
+</style>
+
+<section class="contest-view-shell">
+    <div class="mid btns">
+        <button class="buttons" style="color: var(--accent);" type="button" onclick="window.location.href='/contest?id={{.ID}}'">Tasks</button>
+        <button class="buttons" type="button" onclick="window.location.href='/contest/mysubmissions?id={{.ID}}'">My submissions</button>
+        <button class="buttons" type="button" onclick="window.location.href='/contest/status?id={{.ID}}'">Status</button>
+        <button class="buttons" type="button" onclick="window.location.href='/contest/standings?id={{.ID}}'">Standings</button>           
+    </div>
+    <div class="contest-view-card">
+        <div class="contest-view-head">
+            <div>
+                <h1>{{.ContestName}}</h1>
+            </div>
+            <div class="contest-end-timer" data-end-utc="{{.EndTime}}">
+                <span>Ends in</span>
+                <strong id="contest-ends-in">--:--:--</strong>
+            </div>
+        </div>
+
+        <div class="contest-table-wrap">
+            <table class="contest-problem-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th class="problem-title-cell">Name</th>
+                        <th>score</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Problems}}
+                    <tr class="{{if eq .Solved 1}}solved-row{{else if eq .Solved 2}}attempted-row{{end}}">
+                        <td>
+                            {{if $.Ended}}
+                            <button type="button" class="problem-open-btn" onclick="window.location.href='/problem?id={{.ID}}'">
+                                {{.Serial}}
+                            </button>
+                            {{else}}
+                            <button type="button" class="problem-open-btn" onclick="window.location.href='/contest/task?id={{$.ID}}&&task={{.Serial}}'">
+                                {{.Serial}}
+                            </button>
+                            {{end}}
+                        </td>
+                        <td class="problem-title-cell">
+                            {{if $.Ended}}
+                            <button type="button" class="problem-open-btn" onclick="window.location.href='/problem?id={{.ID}}'">
+                                {{.Name}}
+                            </button>
+                            {{else}}
+                            <button type="button" class="problem-open-btn" onclick="window.location.href='/contest/task?id={{$.ID}}&&task={{.Serial}}'">
+                                {{.Name}}
+                            </button>
+                            {{end}}
+                        </td>
+                        <td class="muted-text">{{.Score}}</td>
+                        <td>
+                            {{if eq .Solved 1}}
+                            <span class="status-pill solved">x{{.SolvedBy}}</span>
+                            {{else if eq .Solved 2}}
+                            <span class="status-pill attempted">x{{.SolvedBy}}</span>
+                            {{else}}
+                            <span class="status-pill">x{{.SolvedBy}}</span>
+                            {{end}}
+                        </td>
+                    </tr>
+                    {{else}}
+                    <tr>
+                        <td colspan="4" class="muted-text">No problems found for this contest.</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<script>
+    (function () {
+        var timer = document.querySelector(".contest-end-timer");
+        var output = document.getElementById("contest-ends-in");
+        if (!timer || !output) return;
+
+        function parseUTC(value) {
+            var match = String(value || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+            if (!match) return null;
+            return new Date(Date.UTC(
+                Number(match[1]),
+                Number(match[2]) - 1,
+                Number(match[3]),
+                Number(match[4]),
+                Number(match[5]),
+                Number(match[6] || 0)
+            ));
+        }
+
+        function pad(value) {
+            return String(value).padStart(2, "0");
+        }
+
+        function render() {
+            var end = parseUTC(timer.dataset.endUtc);
+            if (!end) {
+                output.textContent = "--:--:--";
+                return;
+            }
+
+            var remaining = end.getTime() - Date.now();
+            if (remaining <= 0) {
+                output.textContent = "Finished";
+                return;
+            }
+
+            var totalSeconds = Math.floor(remaining / 1000);
+            var hours = Math.floor(totalSeconds / 3600);
+            var minutes = Math.floor((totalSeconds % 3600) / 60);
+            var seconds = totalSeconds % 60;
+
+            output.textContent = hours + ":" + pad(minutes) + ":" + pad(seconds);
+        }
+
+        render();
+        setInterval(render, 1000);
+    })();
+</script>
+{{end}}

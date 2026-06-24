@@ -1,63 +1,184 @@
 {{define "content"}}
 <style>
-    .table-style {
-        margin-left: 8rem;
-        margin-right: 8rem;
+    .subs-shell {
+        margin: 0 8rem 1.5rem;
+        display: grid;
+        gap: 12px;
+        color: var(--text-main);
+    }
+
+    .subs-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+        overflow: hidden;
+    }
+
+    .subs-head {
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.16);
         display: flex;
-        flex-direction: column;
+        justify-content: space-between;
+        gap: 0.7rem;
         align-items: center;
-        justify-content: center;
+        flex-wrap: wrap;
     }
 
-    table {
+    .subs-head h1 {
+        margin: 0;
+        font-size: 1.08rem;
+        letter-spacing: -0.01em;
+    }
+
+    .subs-head p {
+        margin: 0;
+        color: var(--text-soft);
+        font-size: 0.84rem;
+    }
+
+    .subs-table-wrap {
+        overflow-x: auto;
+    }
+
+    .subs-table {
         width: 100%;
-        table-layout: fixed;
-        word-wrap: break-word;
-        /* Prevents long text from breaking the layout */
+        min-width: 860px;
+        border-collapse: collapse;
     }
 
-    table td,
-    table th {
-        padding: 10px;
-        font-size: small;
-        text-align: left;
+    .subs-table th,
+    .subs-table td {
+        padding: 0.68rem 0.72rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.18);
+        border-right: 1px solid rgba(49, 69, 95, 0.12);
+        font-size: 0.88rem;
+        text-align: center;
+        vertical-align: middle;
     }
 
-    .accepted {
-        color: rgb(5, 146, 5);
+    .subs-table th:last-child,
+    .subs-table td:last-child {
+        border-right: none;
     }
 
-    .wa {
-        color: rgb(218, 15, 15);
+    .subs-table th {
+        color: #31455f;
+        background: #f9fbff;
+        font-size: 0.78rem;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    .subs-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .subs-row.accepted-row {
+        background: rgba(232, 246, 226, 0.45);
+    }
+
+    .subs-row.wa-row {
+        background: rgba(252, 233, 231, 0.36);
+    }
+
+    .subs-btn {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        color: var(--accent);
+        padding: 0.36rem 0.58rem;
+        font-size: 0.82rem;
+        font-weight: 650;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .subs-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+    }
+
+    .verdict-pill {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0.22rem 0.56rem;
+        border: 1px solid var(--border);
+        background: #f8fbff;
+        color: #52657d;
+        font-size: 0.8rem;
+        font-weight: 650;
+    }
+
+    .verdict-pill.accepted {
+        background: #e8f6e2;
+        border-color: #bcdcae;
+        color: #2e5c22;
+    }
+
+    .verdict-pill.wa {
+        background: #fce9e7;
+        border-color: #efc4bf;
+        color: #8a3026;
+    }
+
+    .empty-row td {
+        padding: 1rem;
+        color: var(--text-soft);
+    }
+
+    @media (max-width: 1100px) {
+        .subs-shell {
+            margin: 0 1rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .subs-shell {
+            margin: 0 0.75rem 1.5rem;
+        }
     }
 </style>
-<div class="table-style">
-    <p style="margin-bottom: 5px; font-size: x-large;">{{.ProblemTitle}} submissions</p>
-    <table border="1" style="border-collapse: collapse; color: rgb(74, 74, 74); width: 100%;">
-        <tr>
-            <th>#</th>
-            <th>Who</th>
-            <th>When</th>
-            <th>Problem</th>
-            <th>Language</th>
-            <th>Verdict</th>
-        </tr>
-        {{range .Items}}
-        <tr>
-            <td><a href="/submission?id={{.SubID}}">{{.SubID}}</a></td>
-            <td><a href="/profile?username={{.Username}}">{{.Username}}</a>
-            </td>
-            <td><code>{{.Submitted_at}}</code></td>
-            <td><a href="/problem?id={{.ID}}">{{.Title}} </a></td>
-            <td>GNU G++14</td>
-            <td class="{{if eq .Verdict .Accepted}}accepted{{else}}wa{{end}}"><b>{{.Verdict}}</b></td>
-        </tr>
-        {{else}}
-        <tr>
-            <td colspan="6" style="text-align: center; font-size: 1rem;">No submissions found.</td>
-        </tr>
-        {{end}}
 
-    </table>
-</div>
+<section class="subs-shell">
+    <div class="subs-card">
+        <div class="subs-head">
+            <h1>{{.ProblemTitle}} submissions</h1>
+            <p>Latest attempts for this problem</p>
+        </div>
+        <div class="subs-table-wrap">
+            <table class="subs-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Who</th>
+                        <th>When</th>
+                        <th>Problem</th>
+                        <th>Language</th>
+                        <th>Verdict</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Items}}
+                    <tr class="subs-row {{if eq .Verdict .Accepted}}accepted-row{{else}}wa-row{{end}}">
+                        <td><button type="button" class="subs-btn" onclick="window.location.href='/submission?id={{.SubID}}'">{{.SubID}}</button></td>
+                        <td><button type="button" class="subs-btn" onclick="window.location.href='/profile?username={{.Username}}'">{{.Username}}</button></td>
+                        <td><code>{{.Submitted_at}}</code></td>
+                        <td><button type="button" class="subs-btn" onclick="window.location.href='/problem?id={{.ID}}'">{{.Title}}</button></td>
+                        <td>GNU G++14</td>
+                        <td><span class="verdict-pill {{if eq .Verdict .Accepted}}accepted{{else}}wa{{end}}">{{.Verdict}}</span></td>
+                    </tr>
+                    {{else}}
+                    <tr class="empty-row">
+                        <td colspan="6">No submissions found.</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
 {{end}}

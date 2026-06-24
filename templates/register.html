@@ -1,38 +1,151 @@
 {{define "content"}}
+<style>
+    .auth-shell {
+        margin: 0 8rem 1.5rem;
+        display: flex;
+        justify-content: center;
+        color: var(--text-main);
+    }
 
+    .auth-card {
+        width: min(500px, 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+        padding: 1.2rem;
+    }
 
-<div style="margin-left: 8rem; margin-right: 8rem;color: rgb(74, 74, 74);">
-    <h3>Fill in the form to Register into NoobOJ.</h3> <br>
-    <table border="1" style=" border-collapse: collapse; width: 35%; margin-left: 23rem;">
-        <tr>
-            <th
-                style="text-align: left;padding-left: 10px; padding-top: 5px; padding-bottom: 5px; color: rgb(68, 44, 228);">
-                Register into NoobOJ
-            </th>
-        </tr>
-        <tr>
-            <td style="padding-left: 4rem;padding-right: 3rem; padding-top: 2rem; padding-bottom: 1rem;">
-                <form action="/register" method="POST">
-                    <label style="margin-right: 10px;display: inline-block;width: 80px;" for="name">Name</label>
-                    <input style="width: 55%;" type="text" name="name" id="name" required><br><br>
-                    <label style="margin-right: 10px;display: inline-block;width: 80px;" for="username">Username</label>
-                    <input style="width: 55%;" type="text" name="username" id="username" required><br><br>
-                    <label style="margin-right: 10px;display: inline-block;width: 80px;" for="email">Email</label>
-                    <input style="width: 55%;" type="email" name="email" id="email" required><br><br>
-                    <label style="margin-right: 10px;display: inline-block;width: 80px;" for="password">Password</label>
-                    <input style="width: 55%;" type="password" name="password" id="password" required><br>
-                    <br><label style="margin-right: 10px;display: inline-block;width: 80px;" for="confirm_password">Confirm Password</label>
-                    <input style="width: 55%;" type="password" name="confirm_password" id="confirm_password" required><br>
-                    <br>
-                    <input
-                        style="margin-left: 6rem;font-size: 1rem; padding-top: 2px; padding-bottom: 2px;padding-left: 10px;padding-right: 10px;"
-                        type="submit" value="Register">
-                </form>
-                <br>
-                <a style="margin-left: 9rem; font-size: x-small;" href="/login">Already have an account? Login</a>
-            </td>
-        </tr>
-    </table>
-</div>
+    .auth-card h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.18rem;
+        letter-spacing: -0.01em;
+    }
 
+    .auth-card p {
+        margin: 0 0 1rem;
+        color: var(--text-soft);
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .auth-form {
+        display: grid;
+        gap: 0.8rem;
+    }
+
+    .auth-form label {
+        display: grid;
+        gap: 0.3rem;
+        color: #31455f;
+        font-size: 0.86rem;
+        font-weight: 650;
+    }
+
+    .auth-form input {
+        width: 100%;
+        margin: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 0.62rem 0.72rem;
+        font-family: inherit;
+        font-size: 0.9rem;
+    }
+
+    .auth-submit,
+    .auth-link-btn {
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-family: inherit;
+        font-weight: 700;
+    }
+
+    .auth-submit {
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: #ffffff;
+        padding: 0.62rem 0.9rem;
+    }
+
+    .auth-link-btn {
+        border: 1px solid var(--border);
+        background: #ffffff;
+        color: var(--accent);
+        padding: 0.5rem 0.75rem;
+        font-size: 0.86rem;
+    }
+
+    .auth-link-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+    }
+
+    .auth-alert {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 0.62rem 0.72rem;
+        margin-bottom: 0.9rem;
+        font-size: 0.86rem;
+        line-height: 1.45;
+    }
+
+    .auth-alert.error {
+        background: #fff5f4;
+        border-color: rgba(231, 50, 36, 0.45);
+        color: #9e3026;
+    }
+
+    .auth-alert.success {
+        background: #edf8f2;
+        border-color: rgba(35, 128, 77, 0.35);
+        color: #246641;
+    }
+
+    .auth-foot {
+        margin-top: 0.9rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    @media (max-width: 1100px) {
+        .auth-shell {
+            margin: 0 1rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .auth-shell {
+            margin: 0 0.75rem 1.5rem;
+        }
+    }
+</style>
+
+<section class="auth-shell">
+    <div class="auth-card">
+        <h1>Register into NoobOJ</h1>
+        {{if .Error}}<div class="auth-alert error">{{.Error}}</div>{{end}}
+        {{if .Message}}<div class="auth-alert success">{{.Message}}</div>{{end}}
+        <form class="auth-form" action="/register" method="POST">
+            <label for="name">Name
+                <input type="text" name="name" id="name" required>
+            </label>
+            <label for="username">Username
+                <input type="text" name="username" id="username" minlength="5" maxlength="20" required>
+            </label>
+            <label for="email">Email
+                <input type="email" name="email" id="email" required>
+            </label>
+            <label for="password">Password
+                <input type="password" name="password" id="password" required>
+            </label>
+            <label for="confirm_password">Confirm password
+                <input type="password" name="confirm_password" id="confirm_password" required>
+            </label>
+            <button type="submit" class="auth-submit">Send OTP</button>
+        </form>
+        <div class="auth-foot">
+            <button type="button" class="auth-link-btn" onclick="window.location.href='/login'">Already have an account</button>
+        </div>
+    </div>
+</section>
 {{end}}

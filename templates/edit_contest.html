@@ -1,344 +1,487 @@
 {{define "content"}}
-
 <style>
-    .tabs-nav {
+    .edit-shell {
+        margin: 0 8rem 1.5rem;
+        color: var(--text-main);
+    }
+
+    .edit-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+        overflow: hidden;
+    }
+
+    .edit-tabs {
         display: flex;
-        background-color: #f4f6f8;
-        border: 1px solid #d1d5db;
-        border-bottom: none;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        padding: 0.75rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.16);
+        background: #f9fbff;
     }
 
     .tab-btn {
-        border-radius: 0px;
-        background: none;
-        border: none;
-        padding: 12px 20px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        color: #415368;
+        padding: 0.45rem 0.7rem;
         cursor: pointer;
-        font-size: 14px;
-        font-weight: 600;
-        color: #738f93;
-        transition: all 0.2s ease;
-        outline: none;
-        position: relative;
-        border-left: 1px solid transparent;
-        border-right: 1px solid transparent;
+        font-family: inherit;
+        font-size: 0.86rem;
+        font-weight: 650;
     }
 
-    .tab-btn.active {
-        background-color: #ffffff;
-        color: #2c3e50;
-        border-left: 1px solid #d1d5db;
-        border-right: 1px solid #d1d5db;
-        margin-bottom: -1px;
-        z-index: 2;
-    }
-
-    .tab-btn.active::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background-color: #34495e;
+    .tab-btn.active,
+    .tab-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+        color: var(--accent);
     }
 
     .content-container {
-        border: 1px solid #d1d5db;
-        background: #fff;
-        min-height: 200px;
-        border-radius: 0 0 4px 4px;
+        padding: 1rem;
+    }
+
+    .edit-form,
+    .tab-content.active {
+        display: grid;
+        gap: 1rem;
     }
 
     .tab-content {
         display: none;
     }
 
-    .tab-content.active {
-        display: block;
-        animation: fadeIn 0.3s ease-in;
+    .form-grid {
+        display: grid;
+        gap: 0.85rem;
     }
 
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(5px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    .two-col {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    label {
-        font-weight: 600;
+    .field {
+        display: grid;
+        gap: 0.32rem;
+    }
+
+    .field label,
+    .section-title,
+    .tasks-panel-label {
+        color: #31455f;
+        font-size: 0.86rem;
+        font-weight: 650;
+    }
+
+    .field input,
+    .field textarea,
+    .field select,
+    #problem-search,
+    #am-new-username {
+        width: 100%;
+        margin: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        padding: 0.6rem 0.7rem;
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 0.9rem;
     }
 
     textarea {
         resize: vertical;
+        line-height: 1.5;
     }
 
-    fieldset {
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        padding: 15px;
-        margin-bottom: 15px;
-        background: #fafafa;
+    .required-mark,
+    #time-error {
+        color: #b5483d;
     }
 
-    legend {
-        font-weight: bold;
-    }
-
-    button {
-        padding: 8px 14px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-    }
-
-    .add-btn {
-        background: #2d8cff;
-        color: white;
-    }
-
-    .remove-btn {
-        background: #ff4d4f;
-        color: white;
-        margin-top: 8px;
-    }
-
-    .submit-btn {
-        background: #28a745;
-        color: white;
-        font-weight: bold;
-        padding: 10px 18px;
+    .timezone-note {
+        color: var(--text-soft);
+        font-size: 0.82rem;
+        font-weight: 500;
     }
 
     .tasks-layout {
-        display: flex;
-        gap: 16px;
-        padding: 16px 0;
+        display: grid;
+        grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
+        align-items: start;
+        gap: 0.9rem;
     }
 
     .tasks-panel {
-        flex: 1;
         min-width: 0;
+        display: grid;
+        align-content: start;
+        gap: 0.5rem;
     }
 
-    .tasks-panel-label {
-        font-size: 13px;
-        font-weight: 600;
-        color: #555;
-        margin-bottom: 8px;
+    .tasks-list,
+    .mod-list {
+        border: 1px solid rgba(49, 69, 95, 0.18);
+        border-radius: var(--radius-lg);
+        background: #fbfdff;
+        min-height: 160px;
+        overflow: hidden;
     }
 
-    .tasks-list {
-        border: 1px solid #d1d5db;
-        /* border-radius: 6px; */
-        min-height: 220px;
-        background: #f9f9f9;
+    .problem-search-wrap {
+        position: relative;
     }
 
-    .problem-item {
+    #problem-dropdown {
+        display: none;
+        position: absolute;
+        inset-inline: 0;
+        top: calc(100% + 4px);
+        z-index: 100;
+        max-height: 260px;
+        overflow-y: auto;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        box-shadow: var(--shadow-card);
+    }
+
+    .problem-item,
+    .mod-item {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 8px 12px;
-        border-bottom: 1px solid #e5e7eb;
-        font-size: 14px;
-        background: #fff;
-        cursor: pointer;
-        transition: background 0.15s;
+        gap: 0.6rem;
+        padding: 0.55rem 0.7rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.14);
+        background: #ffffff;
+        font-size: 0.88rem;
     }
 
-    .problem-item:last-child {
+    .problem-item:last-child,
+    .mod-item:last-child {
         border-bottom: none;
     }
 
-    .problem-item:hover {
-        background: #f4f6f8;
+    .problem-item:hover,
+    .mod-item:hover {
+        background: #f8fbff;
     }
 
     .problem-id {
-        font-size: 12px;
-        color: #888;
-        font-family: monospace;
         min-width: 48px;
+        color: #74869d;
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 0.78rem;
     }
 
-    .problem-title {
+    .problem-title,
+    .author-profile-btn {
         flex: 1;
-    }
-
-    .add-icon {
-        color: #28a745;
-        font-size: 18px;
-        line-height: 1;
-    }
-
-    .drag-handle {
-        cursor: grab;
-        color: #aaa;
-        font-size: 14px;
-        user-select: none;
-    }
-
-    .remove-icon {
-        color: #ff4d4f;
+        min-width: 0;
+        border: 0;
+        background: transparent;
+        color: var(--text-main);
+        text-align: left;
+        padding: 0;
         cursor: pointer;
-        font-size: 15px;
-        line-height: 1;
+        font: inherit;
     }
 
-    .order-badge {
-        font-size: 12px;
-        font-weight: 600;
-        min-width: 20px;
-        height: 20px;
-        background: #f0f0f0;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #555;
-    }
-
-    .drag-over {
-        background: #e8f4ff !important;
-    }
-
-    .empty-hint {
-        padding: 24px;
-        text-align: center;
-        font-size: 13px;
-        color: #aaa;
+    .problem-title:hover,
+    .author-profile-btn:hover,
+    .edit-icon:hover {
+        color: var(--accent);
     }
 
     .score-input {
-        width: 64px;
-        padding: 2px 6px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 0.8rem;
+        width: 74px;
+        margin: 0;
+        padding: 0.32rem 0.45rem;
         text-align: center;
-        margin-left: auto;
-        /* pushes it to the right before the ✕ */
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
         flex-shrink: 0;
     }
 
-    .score-input:focus {
-        outline: none;
-        border-color: #4a90e2;
+    .order-badge,
+    .mod-avatar {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border);
+        background: #f8fbff;
+        color: var(--accent);
+        font-weight: 700;
+    }
+
+    .order-badge {
+        width: 24px;
+        height: 24px;
+        border-radius: var(--radius-md);
+        font-size: 0.78rem;
+    }
+
+    .mod-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 999px;
+        font-size: 0.76rem;
+        text-transform: uppercase;
+    }
+
+    .drag-handle,
+    .remove-icon,
+    .edit-icon {
+        cursor: pointer;
+        color: #74869d;
+        flex-shrink: 0;
+    }
+
+    .edit-icon {
+        border: 0;
+        background: transparent;
+        padding: 0.2rem 0.25rem;
+        font: inherit;
+    }
+
+    .remove-icon:hover {
+        color: #8a3026;
+    }
+
+    .drag-over {
+        background: var(--accent-soft) !important;
+    }
+
+    .empty-hint {
+        padding: 1rem;
+        text-align: center;
+        color: var(--text-soft);
+        font-size: 0.86rem;
+    }
+
+    .owner-note {
+        margin: 0;
+        border: 1px solid #d5e4f4;
+        border-radius: var(--radius-md);
+        background: var(--accent-soft);
+        color: #31455f;
+        padding: 0.65rem 0.75rem;
+        font-size: 0.86rem;
+    }
+
+    .author-add-row {
+        display: flex;
+        gap: 0.55rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .role-pill {
+        border-radius: 999px;
+        padding: 0.2rem 0.52rem;
+        border: 1px solid var(--border);
+        background: #f8fbff;
+        color: #415368;
+        font-size: 0.78rem;
+        font-weight: 650;
+    }
+
+    .role-pill.owner {
+        background: #edf4fb;
+        border-color: #d5e4f4;
+        color: var(--accent);
+    }
+
+    .role-pill.moderator {
+        background: #edf7ee;
+        border-color: #c8e2ce;
+        color: #2e5c22;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        padding-top: 0.25rem;
+    }
+
+    .add-btn,
+    .submit-btn {
+        border-radius: var(--radius-md);
+        padding: 0.52rem 0.78rem;
+        cursor: pointer;
+        font-family: inherit;
+        font-weight: 700;
+    }
+
+    .add-btn {
+        border: 1px solid #c7d8ec;
+        background: var(--accent-soft);
+        color: var(--accent);
+    }
+
+    .submit-btn {
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: #ffffff;
+    }
+
+    input:disabled,
+    textarea:disabled,
+    select:disabled,
+    button:disabled {
+        opacity: 0.58;
+        cursor: not-allowed;
+    }
+
+    @media (max-width: 1100px) {
+        .edit-shell { margin: 0 1rem 1.5rem; }
+        .tasks-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 700px) {
+        .edit-shell { margin: 0 0.75rem 1.5rem; }
+        .two-col { grid-template-columns: 1fr; }
+        .form-actions .submit-btn,
+        .add-btn { width: 100%; }
+        .author-add-row { align-items: stretch; }
+        #am-new-username { max-width: none; }
     }
 </style>
 
-<div style="margin: 0 8rem; display: flex; flex-direction: column; align-items: center;">
-    <div class="tabs-nav" style="width: 100%;">
-        <button style="margin-left: 1rem;" class="tab-btn active" onclick="openTab(event, 'details')">Details</button>
-        <button class="tab-btn" onclick="openTab(event, 'tasks')">Tasks</button>
-        <button class="tab-btn" onclick="openTab(event, 'moderators')">Moderators</button>
-        <button class="tab-btn" onclick="openTab(event, 'announcements')">Announcement</button>
-    </div>
+<section class="edit-shell">
+    <div class="edit-card">
+        <div class="edit-tabs">
+            <button type="button" class="tab-btn active" onclick="openTab(event, 'details')">Details</button>
+            <button type="button" class="tab-btn" onclick="openTab(event, 'tasks')">Tasks</button>
+            <button type="button" class="tab-btn" onclick="openTab(event, 'moderators')">Moderators</button>
+            <button type="button" class="tab-btn" onclick="openTab(event, 'announcements')">Announcement</button>
+        </div>
 
-    <div class="content-container" style="width: 100%;">
-        <form style="margin: 20px;" action="/edit/contest?id={{.ID}}" method="POST">
-            <div id="details" class="tab-content active" style="width: 50%;">
-                <label for="title">Contest Name <span style="color: red;">*</span></label>
-                <input type="text" name="title" id="title" value="{{.Ptitle}}" required><br><br>
-
-                <!-- 
-                title
-                start
-                end
-                 
-
-
-                 -->
-
-                <div style="width: 50%;">
-                    <label>Start Time <span style="color: red;">*</span></label>
-                    <span id="tz_display" style="margin-left:10px; color:#666; font-size:13px;"></span><br>
-                    <input type="hidden" name="timezone" id="timezone">
-                    <input type="datetime-local" name="start" id="start" required><br><br>
-
-                    <label>End Time <span style="color: red;">*</span></label><br>
-                    <input type="datetime-local" name="end" id="end" required>
-                    <div id="time-error" style="color:red; font-size:13px; margin-top:6px;"></div>
+        <div class="content-container">
+            <form id="main-contest-form" class="edit-form" action="/edit/contest?id={{.ID}}" method="POST">
+                <div id="details" class="tab-content active">
+                    <div class="field">
+                        <label for="title">Contest Name <span class="required-mark">*</span></label>
+                        <input type="text" name="title" id="title" value="{{.Ptitle}}" required>
+                    </div>
+                    <div class="two-col form-grid">
+                        <div class="field">
+                            <label for="start">Start Time <span class="required-mark">*</span></label>
+                            <input type="hidden" name="timezone" id="timezone">
+                            <input type="datetime-local" name="start" id="start" required>
+                            <span id="tz_display" class="timezone-note"></span>
+                        </div>
+                        <div class="field">
+                            <label for="end">End Time <span class="required-mark">*</span></label>
+                            <input type="datetime-local" name="end" id="end" required>
+                            <div id="time-error"></div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn" onclick="return validateTimes()">Save Contest</button>
+                    </div>
                 </div>
 
-                <div style="display: flex; justify-content: right; margin-top: 16px;">
-                    <button type="submit" class="submit-btn" id="save-btn" onclick="return validateTimes()">Save
-                        Contest</button>
-                </div>
-            </div>
+                <div id="tasks" class="tab-content">
+                    <div class="tasks-layout">
+                        <div class="tasks-panel">
+                            <div class="tasks-panel-label">Available problems</div>
+                            <div class="problem-search-wrap">
+                                <input type="text" id="problem-search" placeholder="Search by ID or name..." autocomplete="off">
+                                <div id="problem-dropdown"></div>
+                            </div>
+                        </div>
 
-            <div id="tasks" class="tab-content">
-                <div style="display: flex; gap: 10px;">
-                    <div class="tasks-panel">
-                        <div class="tasks-panel-label">Available problems</div>
-
-                        <div style="position: relative; margin-bottom: 8px;">
-                            <input type="text" id="problem-search" placeholder="Search by ID or name…"
-                                autocomplete="off" style="width: 100%; box-sizing: border-box;">
-                            <div id="problem-dropdown"
-                                style="display:none; height: 10rem; position:absolute; top:100%; left:0; right:0; z-index:100; background:var(--color-background-primary); border:0.5px solid var(--color-border-secondary); border-radius:var(--border-radius-md); max-height:260px; overflow-y:auto; margin-top:2px;">
+                        <div class="tasks-panel">
+                            <div class="tasks-panel-label">
+                                Selected problems <span id="selected-count">(0)</span>
+                            </div>
+                            <div class="tasks-list" id="selected-list" ondragover="onTaskDragOver(event)" ondrop="onTaskDrop(event)">
+                                <div class="empty-hint" id="tasks-empty-hint">Search and add problems from above</div>
+                                {{range .SelectedProblems}}
+                                <div class="problem-item" data-id="{{.ID}}" data-title="{{.Title}}" data-score="{{.Score}}">
+                                    <span class="drag-handle" title="Drag to reorder">::</span>
+                                    <span class="order-badge">?</span>
+                                    <span class="problem-id">#{{.ID}}</span>
+                                    <button type="button" class="problem-title" onclick="window.location.href='/problem?id={{.ID}}'">{{.Title}}</button>
+                                    <input type="number" class="score-input" name="problem_scores" value="{{.Score}}" min="0" placeholder="1000" title="Score">
+                                    <button type="button" class="edit-icon" title="Edit" onclick="window.location.href='/edit/problem?id={{.ID}}'">Edit</button>
+                                    <span class="remove-icon" title="Remove">x</span>
+                                    <input type="hidden" name="problem_ids" value="{{.ID}}">
+                                    <input type="hidden" class="serial-input" name="problem_serials" value="">
+                                </div>
+                                {{end}}
                             </div>
                         </div>
                     </div>
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn" onclick="return validateTimes()">Save Contest</button>
+                    </div>
+                </div>
 
-                    <div class="tasks-panel">
-                        <div class="tasks-panel-label">
-                            Selected problems
-                            <span id="selected-count" style="font-weight:400; color:#888;">(0)</span>
-                        </div>
-                        <div class="tasks-list" id="selected-list" ondragover="onTaskDragOver(event)"
-                            ondrop="onTaskDrop(event)">
-                            <div class="empty-hint" id="tasks-empty-hint">Search and add problems from above</div>
-                            {{range .SelectedProblems}}
-                            <div class="problem-item" data-id="{{.ID}}" data-title="{{.Title}}" data-score="{{.Score}}">
-                                <span class="drag-handle" title="Drag to reorder">⠿</span>
-                                <span class="order-badge">?</span>
-                                <span class="problem-id">#{{.ID}}</span>
-                                <span class="problem-title">{{.Title}}</span>
-                                <input type="number" class="score-input" name="problem_scores" value="{{.Score}}"
-                                    min="0" placeholder="1000" title="Score">
-                                <span class="remove-icon" title="Remove">✕</span>
-                                <input type="hidden" name="problem_ids" value="{{.ID}}">
-                            </div>
+                <div id="moderators" class="tab-content">
+                    {{if eq .CurrentUserRole "owner"}}
+                    <p class="owner-note">Only owners can add or remove authors.</p>
+                    <div class="author-add-row">
+                        <input type="text" id="am-new-username" placeholder="Username" autocomplete="off" onkeydown="handleAuthorSubmit(event)">
+                        <input type="hidden" id="am-new-role" value="moderator">
+                        <button type="button" class="add-btn" onclick="addAuthor()">+ Add author</button>
+                    </div>
+                    {{end}}
+
+                    <div class="tasks-panel-label">Moderators <span id="mod-count">(0)</span></div>
+                    <div class="mod-list" id="mod-list">
+                        <div class="empty-hint" id="mod-empty-hint" style="display:none;">No moderators added yet</div>
+                        {{range .Authors}}
+                        <div class="mod-item" data-username="{{.Username}}" data-role="{{.Role}}">
+                            <div class="mod-avatar">{{slice .Username 0 2}}</div>
+                            <button type="button" class="author-profile-btn" onclick="window.location.href='/profile?username={{.Username}}'">{{.Username}}</button>
+                            {{if eq .Role "owner"}}
+                            <span class="role-pill owner">owner</span>
+                            {{else}}
+                            <span class="role-pill moderator">{{.Role}}</span>
                             {{end}}
+                            {{if eq $.CurrentUserRole "owner"}}
+                                {{if ne .Role "owner"}}
+                                <span class="remove-icon" title="Remove moderator" onclick="removeAuthor(this, '{{.Username}}')">x</span>
+                                {{end}}
+                            {{end}}
+                            <input type="hidden" name="author_usernames" value="{{.Username}}">
+                            <input type="hidden" name="author_roles" value="{{.Role}}">
                         </div>
+                        {{end}}
                     </div>
-                </div>
-                <div style="display: flex; justify-content: right; margin-top: 16px;">
-                    <button type="submit" class="submit-btn" id="save-btn" onclick="return validateTimes()">Save
-                        Contest</button>
-                </div>
-            </div>
 
-            <div id="moderators" class="tab-content">
-                <div style="display: flex; justify-content: right;">
-                    <button type="submit" class="submit-btn">Save Problem</button>
-                </div>
-            </div>
-        </form>
-
-        <div style="margin: 20px;" id="announcements" class="tab-content">
-            <form action="/announcement" method="post">
-                <label>Subject</label>
-                <input type="text" name="subject" required><br><br>
-                <label>Message</label>
-                <textarea name="announcement" style="height: 20rem;"></textarea>
-                <div style="display: flex; justify-content: right;">
-                    <button type="submit" class="submit-btn">Post</button>
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn" onclick="return validateTimes()">Save Contest</button>
+                    </div>
                 </div>
             </form>
+
+            <div id="announcements" class="tab-content">
+                <form id="announcement-form" class="edit-form" action="/announcement" method="post">
+                    <div class="field">
+                        <label>Subject</label>
+                        <input type="text" name="subject" required>
+                    </div>
+                    <div class="field">
+                        <label>Message</label>
+                        <textarea name="announcement" rows="12"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">Post</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
+</section>
 
 <script>
     // ── Tab switching ──────────────────────────────────────────────
@@ -349,81 +492,77 @@
         evt.currentTarget.classList.add("active");
     }
 
-
     // ── Time setup ─────────────────────────────────────────────────
-    // Go sends unix milliseconds — new Date(ms) always parses correctly
     const startMs = parseInt("{{.Start}}");
-    const endMs = parseInt("{{.End}}");
+    const endMs   = parseInt("{{.End}}");
 
-    // ms → "YYYY-MM-DDTHH:MM" in browser local time
     function msToLocalInput(ms) {
         const d = new Date(ms);
         const pad = n => String(n).padStart(2, "0");
-        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
-
-    // datetime-local string → Date (browser treats it as local time)
-    function localInputToDate(val) {
-        return new Date(val);
-    }
-
-    // Date → datetime-local input string (local time)
+    function localInputToDate(val) { return new Date(val); }
     function dateToLocalInput(d) {
         const pad = n => String(n).padStart(2, "0");
-        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
 
     const startInput = document.getElementById("start");
-    const endInput = document.getElementById("end");
-    const tzDisplay = document.getElementById("tz_display");
-    const tzHidden = document.getElementById("timezone");
-    const errorDiv = document.getElementById("time-error");
+    const endInput   = document.getElementById("end");
+    const tzDisplay  = document.getElementById("tz_display");
+    const tzHidden   = document.getElementById("timezone");
+    const errorDiv   = document.getElementById("time-error");
 
-    // Show browser timezone
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     tzDisplay.textContent = `(${tz})`;
     tzHidden.value = tz;
 
-    // Populate inputs — converted to browser local time
     startInput.value = msToLocalInput(startMs);
-    endInput.value = msToLocalInput(endMs);
+    endInput.value   = msToLocalInput(endMs);
 
-    // Contest state
-    const now = new Date();
+    const now       = new Date();
     const startDate = new Date(startMs);
-    const endDate = new Date(endMs);
-
+    const endDate   = new Date(endMs);
     const hasStarted = now >= startDate;
-    const hasEnded = now >= endDate;
+    const hasEnded   = now >= endDate;
 
-    // Rule 4: disable start if already started
-    if (hasStarted) {
-        startInput.disabled = true;
-        startInput.title = "Contest has already started";
-    }
-
-    // Rule 5: disable end if already ended
+    // --- LOCKING LOGIC ---
     if (hasEnded) {
-        endInput.disabled = true;
-        endInput.title = "Contest has already ended";
+        // FULL LOCK: Contest is over
+        const allForms = document.querySelectorAll('form');
+        allForms.forEach(f => {
+            const inputs = f.querySelectorAll('input, textarea, select, button');
+            inputs.forEach(el => el.disabled = true);
+        });
+
+        document.querySelectorAll('.remove-icon, .drag-handle, .add-btn, .edit-icon').forEach(el => {
+            el.style.pointerEvents = 'none';
+            el.style.opacity = '0.4';
+        });
+
+        endInput.title = "Contest has already ended. Modifications are locked.";
+    } else if (hasStarted) {
+        // SELECTIVE LOCK: Contest is currently running
+        // Only disable the start time input
+        startInput.disabled = true;
+        startInput.title = "Contest has already started. Start time cannot be changed.";
+
+        // Ensure everything else remains enabled (default behavior)
+        console.log("Contest running: Only start time is locked.");
     }
 
-    // Rule 6: start must be at least now+10min
+    // Min logic for new dates (only if not started/ended)
     if (!hasStarted) {
         const minStart = new Date(now.getTime() + 10 * 60 * 1000);
         startInput.min = dateToLocalInput(minStart);
     }
 
-    // Rules 7 & 8: end min = max(now+5min, start+30min)
     function updateEndMin() {
-        const minFromNow = new Date(now.getTime() + 5 * 60 * 1000);
-        const startVal = localInputToDate(startInput.value);
+        const minFromNow   = new Date(now.getTime() + 5 * 60 * 1000);
+        const startVal     = localInputToDate(startInput.value);
         const minFromStart = new Date(startVal.getTime() + 30 * 60 * 1000);
-        const minEnd = minFromStart > minFromNow ? minFromStart : minFromNow;
-
+        const minEnd       = minFromStart > minFromNow ? minFromStart : minFromNow;
         endInput.min = dateToLocalInput(minEnd);
-
-        // Auto-correct if current end value is below minimum
         if (endInput.value && localInputToDate(endInput.value) < minEnd) {
             endInput.value = dateToLocalInput(minEnd);
         }
@@ -434,19 +573,18 @@
         startInput.addEventListener("change", updateEndMin);
     }
 
-    // ── Validation on submit ───────────────────────────────────────
     function validateTimes() {
+        if (hasEnded) return false;
         errorDiv.textContent = "";
         const now = new Date();
 
         if (!startInput.disabled) {
             const s = localInputToDate(startInput.value);
-            if (s < new Date(now.getTime() + 10 * 60 * 1000)) {
-                errorDiv.textContent = "Start time must be at least 10 minutes from now.";
+            if (s < new Date(now.getTime() + 5 * 60 * 1000)) {
+                errorDiv.textContent = "Start time must be at least 5 minutes from now.";
                 return false;
             }
         }
-
         if (!endInput.disabled) {
             const s = localInputToDate(startInput.value);
             const e = localInputToDate(endInput.value);
@@ -459,33 +597,27 @@
                 return false;
             }
         }
-
         return true;
     }
 
-
     // ── Tasks tab ────────────────────────────────────────────────
-
     let taskDragSrc = null;
 
-    // All available problems injected from Go template into JS
     const ALL_PROBLEMS = [
         {{ range .AvailableProblems }}
-    { id: "{{.ID}}", title: {{.Title | js }} },
-    {{ end }}
-];
+        { id: "{{.ID}}", title: {{.Title | js}} },
+        {{ end }}
+    ];
 
-    // Track which IDs are already selected so they don't appear in search
     const selectedIds = new Set(
         [...document.querySelectorAll('#selected-list .problem-item')].map(el => el.dataset.id)
     );
 
-    // ── Search / dropdown ──────────────────────────────────────
-
     const searchInput = document.getElementById('problem-search');
-    const dropdown = document.getElementById('problem-dropdown');
+    const dropdown    = document.getElementById('problem-dropdown');
 
     function buildDropdown(query) {
+        if (hasEnded) return;
         const q = query.trim().toLowerCase();
         const matches = ALL_PROBLEMS.filter(p => {
             if (selectedIds.has(String(p.id))) return false;
@@ -494,106 +626,99 @@
         });
 
         dropdown.innerHTML = '';
-
         if (!matches.length) {
-            dropdown.innerHTML = '<div style="padding:10px 12px; font-size:13px; color:var(--color-text-tertiary);">No problems found</div>';
+            dropdown.innerHTML = '<div class="empty-hint">No problems found</div>';
             dropdown.style.display = 'block';
             return;
         }
 
         matches.slice(0, 50).forEach(p => {
             const row = document.createElement('div');
-            row.style.cssText = 'display:flex; align-items:center; gap:8px; padding:8px 12px; cursor:pointer; font-size:13px;';
+            row.className = 'problem-item';
             row.innerHTML = `
-            <span style="color:var(--color-text-secondary); flex-shrink:0;">#${p.id}</span>
-            <span style="flex:1; color:var(--color-text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.title}</span>
-            <span style="font-size:16px; color:var(--color-text-info); flex-shrink:0; line-height:1;">＋</span>
-        `;
-            row.addEventListener('mouseenter', () => row.style.background = 'var(--color-background-secondary)');
-            row.addEventListener('mouseleave', () => row.style.background = '');
+                <span class="problem-id">#${p.id}</span>
+                <span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.title}</span>
+                <span class="add-icon">+</span>
+            `;
             row.addEventListener('mousedown', e => {
-                e.preventDefault(); // keep focus on input
+                e.preventDefault();
                 addTaskToSelected(p.id, p.title);
                 searchInput.value = '';
-                dropdown.style.display = 'none';
+                buildDropdown('');
             });
             dropdown.appendChild(row);
         });
-
         dropdown.style.display = 'block';
     }
 
-    searchInput.addEventListener('input', () => buildDropdown(searchInput.value));
-    searchInput.addEventListener('focus', () => buildDropdown(searchInput.value));
-
+    searchInput.addEventListener('input',  () => buildDropdown(searchInput.value));
+    searchInput.addEventListener('focus',  () => buildDropdown(searchInput.value));
     document.addEventListener('click', e => {
-        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target))
             dropdown.style.display = 'none';
-        }
     });
-
     searchInput.addEventListener('keydown', e => {
         if (e.key === 'Escape') { dropdown.style.display = 'none'; searchInput.blur(); }
     });
-
-    // ── Selected list ─────────────────────────────────────────
 
     function refreshTaskOrder() {
         const items = document.querySelectorAll('#selected-list .problem-item');
         items.forEach((el, i) => {
             el.querySelector('.order-badge').textContent = String.fromCharCode(65 + i);
+            const s = el.querySelector('.serial-input');
+            if (s) s.value = String.fromCharCode(65 + i);
         });
         document.getElementById('selected-count').textContent = '(' + items.length + ')';
         document.getElementById('tasks-empty-hint').style.display = items.length ? 'none' : 'block';
     }
 
     function makeDraggable(item) {
+        if (hasEnded) return;
         item.draggable = true;
-        item.addEventListener('dragstart', e => {
-            taskDragSrc = item;
-            e.dataTransfer.effectAllowed = 'move';
-        });
+        item.addEventListener('dragstart', e => { taskDragSrc = item; e.dataTransfer.effectAllowed = 'move'; });
         item.addEventListener('dragend', () => {
             document.querySelectorAll('#selected-list .problem-item').forEach(el => el.classList.remove('drag-over'));
         });
-        item.addEventListener('dragover', e => { e.preventDefault(); item.classList.add('drag-over'); });
-        item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+        item.addEventListener('dragover',  e => { e.preventDefault(); item.classList.add('drag-over'); });
+        item.addEventListener('dragleave', ()  => item.classList.remove('drag-over'));
         item.addEventListener('drop', e => {
             e.preventDefault(); e.stopPropagation();
             item.classList.remove('drag-over');
             if (taskDragSrc && taskDragSrc !== item) {
                 const parent = item.parentNode;
-                const all = [...parent.querySelectorAll('.problem-item')];
+                const all    = [...parent.querySelectorAll('.problem-item')];
                 const srcIdx = all.indexOf(taskDragSrc);
                 const tgtIdx = all.indexOf(item);
                 if (srcIdx < tgtIdx) parent.insertBefore(taskDragSrc, item.nextSibling);
-                else parent.insertBefore(taskDragSrc, item);
+                else                 parent.insertBefore(taskDragSrc, item);
                 refreshTaskOrder();
             }
         });
     }
 
     function addTaskToSelected(id, title, score) {
+        if (hasEnded) return;
         selectedIds.add(String(id));
-
-        const sel = document.getElementById('selected-list');
+        const sel  = document.getElementById('selected-list');
         const item = document.createElement('div');
-        item.className = 'problem-item';
-        item.dataset.id = id;
+        item.className  = 'problem-item';
+        item.dataset.id    = id;
         item.dataset.title = title;
 
         const scoreVal = (score !== undefined && score !== null && score !== '') ? score : 1000;
 
         item.innerHTML = `
-        <span class="drag-handle" title="Drag to reorder">⠿</span>
-        <span class="order-badge">1</span>
-        <span class="problem-id">#${id}</span>
-        <span class="problem-title">${title}</span>
-        <input type="number" class="score-input" name="problem_scores"
-               value="${scoreVal}" min="0" placeholder="1000" title="Score">
-        <span class="remove-icon" title="Remove">✕</span>
-        <input type="hidden" name="problem_ids" value="${id}">
-    `;
+            <span class="drag-handle" title="Drag to reorder">::</span>
+            <span class="order-badge">?</span>
+            <span class="problem-id">#${id}</span>
+            <button type="button" class="problem-title" onclick="window.location.href='/problem?id=${id}'">${title}</button>
+            <input type="number" class="score-input" name="problem_scores" value="${scoreVal}" min="0" placeholder="1000" title="Score">
+            <button type="button" class="edit-icon" title="Edit" onclick="window.location.href='/edit/problem?id=${id}'">Edit</button>
+            <span class="remove-icon" title="Remove">x</span>
+            <input type="hidden" name="problem_ids" value="${id}">
+            <input type="hidden" class="serial-input" name="problem_serials" value="">
+        `;
+
         item.querySelector('.remove-icon').addEventListener('click', () => removeTaskFromSelected(id, title));
         makeDraggable(item);
         sel.appendChild(item);
@@ -601,18 +726,17 @@
     }
 
     function removeTaskFromSelected(id, title) {
+        if (hasEnded) return;
         selectedIds.delete(String(id));
         const item = document.querySelector(`#selected-list [data-id="${id}"]`);
         if (item) item.remove();
         refreshTaskOrder();
-        // refresh dropdown in case it's open
         if (dropdown.style.display !== 'none') buildDropdown(searchInput.value);
     }
 
     function onTaskDragOver(e) { e.preventDefault(); }
-    function onTaskDrop(e) { e.preventDefault(); }
+    function onTaskDrop(e)     { e.preventDefault(); }
 
-    // Wire up pre-selected problems from server
     document.querySelectorAll('#selected-list .problem-item').forEach(el => {
         el.querySelector('.remove-icon').addEventListener('click', () =>
             removeTaskFromSelected(el.dataset.id, el.dataset.title)
@@ -622,7 +746,103 @@
 
     refreshTaskOrder();
 
+    // ── Moderators tab ────────────────────────────────────────────
 
+    function refreshModCount() {
+        const items = document.querySelectorAll('#mod-list .mod-item');
+        document.getElementById('mod-count').textContent = '(' + items.length + ')';
+        const hint = document.getElementById('mod-empty-hint');
+        if (hint) hint.style.display = items.length ? 'none' : 'block';
+    }
+
+    function removeAuthor(btn, username) {
+        if (hasEnded) return;
+        if (!confirm(`Remove ${username} from this contest?`)) return;
+        const row = btn.closest('.mod-item');
+        if (row) row.remove();
+        refreshModCount();
+    }
+
+    function addAuthor() {
+        if (hasEnded) return;
+        const input    = document.getElementById('am-new-username');
+        const select   = document.getElementById('am-new-role');
+        const username = input.value.trim();
+        const role     = select.value;
+        if (!username) { input.focus(); return; }
+
+        const list = document.getElementById('mod-list');
+
+        if (list.querySelector(`[data-username="${CSS.escape(username)}"]`)) {
+            input.select();
+            return;
+        }
+
+        const initials   = username.slice(0, 2).toUpperCase();
+        const badgeStyle = role === 'owner'
+            ? 'background:#dbeafe;color:#1e3a8a;'
+            : 'background:#dcfce7;color:#14532d;';
+
+        const item = document.createElement('div');
+        item.className = 'mod-item';
+        item.dataset.username = username;
+        item.dataset.role     = role;
+
+        const avatar = document.createElement('div');
+        avatar.className = 'mod-avatar';
+        avatar.textContent = initials;
+
+        const nameSpan = document.createElement('button');
+        nameSpan.type = 'button';
+        nameSpan.className = 'author-profile-btn';
+        nameSpan.textContent = username;
+        nameSpan.addEventListener('click', () => {
+            window.location.href = '/profile?username=' + encodeURIComponent(username);
+        });
+
+        const badge = document.createElement('span');
+        badge.className = 'role-pill ' + role;
+        badge.textContent = role;
+
+        const hiddenUser = document.createElement('input');
+        hiddenUser.type  = 'hidden';
+        hiddenUser.name  = 'author_usernames';
+        hiddenUser.value = username;
+
+        const hiddenRole = document.createElement('input');
+        hiddenRole.type  = 'hidden';
+        hiddenRole.name  = 'author_roles';
+        hiddenRole.value = role;
+
+        item.appendChild(avatar);
+        item.appendChild(nameSpan);
+        item.appendChild(badge);
+        item.appendChild(hiddenUser);
+        item.appendChild(hiddenRole);
+
+        if (role !== 'owner') {
+            const removeBtn = document.createElement('span');
+            removeBtn.className   = 'remove-icon';
+            removeBtn.title       = 'Remove moderator';
+            removeBtn.textContent = 'x';
+            removeBtn.addEventListener('click', () => removeAuthor(removeBtn, username));
+            item.appendChild(removeBtn);
+        }
+
+        list.appendChild(item);
+        refreshModCount();
+        input.value = '';
+        input.focus();
+    }
+
+    refreshModCount();
+
+    function handleAuthorSubmit(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            addAuthor();
+        }
+    }
 </script>
 
 {{end}}

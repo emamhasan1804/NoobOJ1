@@ -1,235 +1,311 @@
-don't change anything just make the UI beautiful: 
 {{define "content"}}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <style>
-    /* 1. Navigation Bar Styling */
-    .tabs-nav {
+    .edit-shell {
+        margin: 0 8rem 1.5rem;
+        color: var(--text-main);
+    }
+
+    .edit-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+        overflow: hidden;
+    }
+
+    .edit-tabs {
         display: flex;
-        background-color: #f4f6f8;
-        /* Light grey background from screenshot */
-        border: 1px solid #d1d5db;
-        border-bottom: none;
-        /* padding-left: 10px; */
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        padding: 0.75rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.16);
+        background: #f9fbff;
     }
 
     .tab-btn {
-        border-radius: 0px;
-        background: none;
-        border: none;
-        padding: 12px 20px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        color: #415368;
+        padding: 0.45rem 0.7rem;
         cursor: pointer;
-        font-size: 14px;
-        font-weight: 600;
-        color: #738f93;
-        /* Muted grey for inactive */
-        transition: all 0.2s ease;
-        outline: none;
-        position: relative;
-        border-left: 1px solid transparent;
-        border-right: 1px solid transparent;
+        font-family: inherit;
+        font-size: 0.86rem;
+        font-weight: 650;
     }
 
-    /* 2. Active Tab Styling */
-    .tab-btn.active {
-        background-color: #ffffff;
-        color: #2c3e50;
-        /* Creates the "lifted" effect */
-        border-left: 1px solid #d1d5db;
-        border-right: 1px solid #d1d5db;
-        margin-bottom: -1px;
-        /* Overlaps the bottom border */
-        z-index: 2;
+    .tab-btn.active,
+    .tab-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+        color: var(--accent);
     }
 
-    /* The blue/dark indicator line */
-    .tab-btn.active::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background-color: #34495e;
-    }
-
-    /* 3. Content Area Styling */
-    .content-container {
-        border: 1px solid #d1d5db;
-        /* padding: 30px; */
-        background: #fff;
-        min-height: 200px;
-        border-radius: 0 0 4px 4px;
+    .edit-form {
+        padding: 1rem;
+        display: grid;
+        gap: 1rem;
     }
 
     .tab-content {
         display: none;
-        /* Hide all by default */
     }
 
     .tab-content.active {
-        display: block;
-        /* Show only the active one */
-        animation: fadeIn 0.3s ease-in;
+        display: grid;
+        gap: 0.85rem;
     }
 
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(5px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-</style>
-<style>
-    .container {
-        max-width: 800px;
-        margin: auto;
-        background: white;
-        padding: 30px;
-        border: 1px solid rgb(74, 74, 74);
+    .form-grid {
+        display: grid;
+        gap: 0.85rem;
     }
 
-    h1 {
-        margin-top: 0;
+    .two-col {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    label {
-        font-weight: 600;
+    .field {
+        display: grid;
+        gap: 0.32rem;
     }
 
+    .field label,
+    .section-title {
+        color: #31455f;
+        font-size: 0.86rem;
+        font-weight: 650;
+    }
+
+    .field input,
+    .field textarea,
+    .field select,
+    .tag-container input {
+        width: 100%;
+        margin: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        padding: 0.6rem 0.7rem;
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 0.9rem;
+    }
 
     textarea {
         resize: vertical;
+        line-height: 1.5;
+    }
+
+    .required-mark {
+        color: #b5483d;
+    }
+
+    .tag-container {
+        position: relative;
+        display: grid;
+        gap: 0.45rem;
+        max-width: 520px;
+    }
+
+    .suggestions {
+        max-height: 150px;
+        overflow-y: auto;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+    }
+
+    .suggestions:empty {
+        display: none;
+    }
+
+    .suggestion-item {
+        padding: 0.45rem 0.6rem;
+        cursor: pointer;
+        color: var(--text-main);
+        font-size: 0.88rem;
+    }
+
+    .suggestion-item:hover {
+        background: var(--accent-soft);
+        color: var(--accent);
+    }
+
+    #selected-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+
+    .tag-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #f8fbff;
+        padding: 0.22rem 0.5rem;
+        color: #415368;
+        font-size: 0.8rem;
+        font-weight: 600;
     }
 
     fieldset {
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        padding: 15px;
-        margin-bottom: 15px;
-        background: #fafafa;
+        border: 1px solid rgba(49, 69, 95, 0.18);
+        border-radius: var(--radius-lg);
+        padding: 0.9rem;
+        margin: 0 0 0.75rem;
+        background: #fbfdff;
+        display: grid;
+        gap: 0.65rem;
     }
 
     legend {
-        font-weight: bold;
-        padding: 0 5px;
+        padding: 0 0.35rem;
+        color: #31455f;
+        font-size: 0.86rem;
+        font-weight: 700;
     }
 
-    button {
-        padding: 8px 14px;
-        border: none;
-        border-radius: 6px;
+    .language-row {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        flex-wrap: wrap;
+    }
+
+    .language-pill {
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #f8fbff;
+        color: var(--accent);
+        padding: 0.28rem 0.58rem;
+        font-size: 0.84rem;
+        font-weight: 650;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        border-top: 1px solid rgba(49, 69, 95, 0.14);
+        padding-top: 1rem;
+    }
+
+    .add-btn,
+    .remove-btn,
+    .submit-btn {
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        padding: 0.52rem 0.78rem;
         cursor: pointer;
-        font-size: 14px;
+        font-family: inherit;
+        font-weight: 700;
     }
 
     .add-btn {
-        background: #2d8cff;
-        color: white;
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+        color: var(--accent);
     }
 
     .remove-btn {
-        background: #ff4d4f;
-        color: white;
-        margin-top: 8px;
+        background: #fff5f4;
+        border-color: #efc4bf;
+        color: #8a3026;
+        width: fit-content;
     }
 
     .submit-btn {
-        background: #28a745;
-        color: white;
-        font-weight: bold;
-        padding: 10px 18px;
-        font-size: 15px;
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #ffffff;
     }
 
-    hr {
-        border: none;
-        border-top: 1px solid #eee;
-        margin: 25px 0;
+    .CodeMirror {
+        height: 360px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        color: #162335;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 0.88rem;
+        line-height: 1.5;
     }
 
-    h1 {
-        margin-top: 2rem;
-        color: #111;
+    .CodeMirror-gutters {
+        border-right: 1px solid rgba(49, 69, 95, 0.16);
+        background: #fbfdff;
     }
-    <style>
-.tag-container {
-    width: 300px;
-}
 
-.suggestions {
-    /* border: 1px solid #ccc; */
-    max-height: 120px;
-    overflow-y: auto;
-}
+    .CodeMirror-linenumber {
+        color: #8a98aa;
+    }
 
-.suggestion-item {
-    padding: 5px;
-    cursor: pointer;
-}
+    .cm-s-default .cm-keyword { color: #1f4e7a; font-weight: 700; }
+    .cm-s-default .cm-string { color: #8a4a12; }
+    .cm-s-default .cm-comment { color: #6c7f93; font-style: italic; }
+    .cm-s-default .cm-number { color: #246641; }
+    .cm-s-default .cm-def,
+    .cm-s-default .cm-variable-2 { color: #7a3d7c; }
 
-.suggestion-item:hover {
-    background: #eee;
-}
+    @media (max-width: 1100px) {
+        .edit-shell { margin: 0 1rem 1.5rem; }
+    }
 
-.tag-chip {
-    display: inline-block;
-    background: #ddd;
-    padding: 5px 8px;
-    margin: 3px;
-    border-radius: 5px;
-}
-
-.tag-chip button {
-    border: none;
-    background: transparent;
-    cursor: pointer;
-}
-</style>
+    @media (max-width: 700px) {
+        .edit-shell { margin: 0 0.75rem 1.5rem; }
+        .two-col { grid-template-columns: 1fr; }
+        .form-actions .submit-btn { width: 100%; }
+    }
 </style>
 
+<section class="edit-shell">
+    <div class="edit-card">
+        <div class="edit-tabs">
+            <button type="button" class="tab-btn active" onclick="openTab(event, 'details')">Details</button>
+            <button type="button" class="tab-btn" onclick="openTab(event, 'test-case')">Test Cases</button>
+            <button type="button" class="tab-btn" onclick="openTab(event, 'languages')">Languages</button>
+            <button type="button" class="tab-btn" onclick="openTab(event, 'editoriaL')">Editorial</button>
+        </div>
 
-<div
-    style=" margin-left: 8rem;margin-right: 8rem;display: flex;flex-direction: column;align-items: center;justify-content: center;">
-    <div class="tabs-nav" style="width: 100%;">
-        <button style="margin-left: 1rem;" class="tab-btn active" onclick="openTab(event, 'details')">Details</button>
-        <button class="tab-btn" onclick="openTab(event, 'test-case')">Test Cases</button>
-        <button class="tab-btn" onclick="openTab(event, 'languages')">Languages</button>
-        <button class="tab-btn" onclick="openTab(event, 'editoriaL')">Editorial</button>
-    </div>
-
-    <div class="content-container" style="width: 100%;">
-        <form style="margin: 20px;" action="/edit/problem?id={{.ID}}" method="POST">
-            <div id="details" class="tab-content active section">
-                <label for="title">Problem Title</label>
-                <input type="text" value="{{.Ptitle}}" name="title" id="title" placeholder="Enter problem title"
-                    required> <br><br>
-                <label for="statement">Problem Statement</label>
-                <textarea name="statement" id="statement" rows="6" placeholder="Describe the problem"
-                    required>{{.Statement}}</textarea> <br><br>
-                <label for="input_desc">Input</label>
-                <textarea name="input_desc" id="input_desc" rows="3" placeholder="Describe the input"
-                    required>{{.Input}}</textarea> <br><br>
-                <label for="output_desc">Output</label>
-                <textarea name="output_desc" id="output_desc" rows="3" placeholder="Describe the output"
-                    required>{{.Output}}</textarea> <br><br>
-                <label for="constraints">Constraints</label>
-                <textarea name="constraints" id="constraints" rows="3"
-                    placeholder="e.g. 1 ≤ N ≤ 10^5">{{.Constraints}}</textarea> <br><br>
-
-                <label for="tags">Tags</label>
-                <div class="tag-container">
-                    <input type="text" id="tag-input" placeholder="Type to search tags...">
-                    <div id="tag-suggestions" class="suggestions"></div>
-                    <div id="selected-tags"></div>
+        <form class="edit-form" action="/edit/problem?id={{.ID}}" method="POST">
+            <div id="details" class="tab-content active">
+                <div class="field">
+                    <label for="title">Problem Title <span class="required-mark">*</span></label>
+                    <input type="text" value="{{.Ptitle}}" name="title" id="title" placeholder="Enter problem title" required>
                 </div>
-                <br><br>
-                <input type="hidden" name="tags" id="tags">
-                <label for="rating">Rating</label>
-                <select name="rating" id="rating" style="width: 10%; margin-left: 5px;" required>
+                <div class="field">
+                    <label for="statement">Problem Statement <span class="required-mark">*</span></label>
+                    <textarea name="statement" id="statement" rows="8" placeholder="Describe the problem" required>{{.Statement}}</textarea>
+                </div>
+                <div class="two-col form-grid">
+                    <div class="field">
+                        <label for="input_desc">Input <span class="required-mark">*</span></label>
+                        <textarea name="input_desc" id="input_desc" rows="4" placeholder="Describe the input" required>{{.Input}}</textarea>
+                    </div>
+                    <div class="field">
+                        <label for="output_desc">Output <span class="required-mark">*</span></label>
+                        <textarea name="output_desc" id="output_desc" rows="4" placeholder="Describe the output" required>{{.Output}}</textarea>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="constraints">Constraints</label>
+                    <textarea name="constraints" id="constraints" rows="4" placeholder="e.g. 1 <= N <= 10^5">{{.Constraints}}</textarea>
+                </div>
+                <div class="two-col form-grid">
+                    <div class="field">
+                        <label for="tag-input">Tags</label>
+                        <div class="tag-container">
+                            <input type="text" id="tag-input" placeholder="Type to search tags...">
+                            <div id="tag-suggestions" class="suggestions"></div>
+                            <div id="selected-tags"></div>
+                        </div>
+                        <input type="hidden" name="tags" id="tags">
+                    </div>
+                    <div class="field">
+                        <label for="rating">Rating</label>
+                        <select name="rating" id="rating" required>
                     <option value="800" {{if eq .Rating 800}}selected{{end}}>800</option>
                     <option value="900" {{if eq .Rating 900}}selected{{end}}>900</option>
                     <option value="1000" {{if eq .Rating 1000}}selected{{end}}>1000</option>
@@ -259,77 +335,83 @@ don't change anything just make the UI beautiful:
                     <option value="3400" {{if eq .Rating 3400}}selected{{end}}>3400</option>
                     <option value="3500" {{if eq .Rating 3500}}selected{{end}}>3500</option>
                 </select>
+                    </div>
+                </div>
             </div>
 
             <div id="test-case" class="tab-content">
-                <h3>Test Cases</h3>
-
-                <div id="test-case-container">
-                    {{range .Test}}
-
-                    <fieldset>
-
-                        <legend>Test Case 1</legend>
-
-                        <label for="test_input[]">Input</label>
-                        <textarea name="test_input[]" id="test_input[]" rows="3">{{ .Input}}</textarea>
-
-                        <label for="test_output[]">Output</label>
-                        <textarea name="test_output[]" id="test_output[]" rows="3">{{ .Output}}</textarea>
-
-                        <label>Type</label>
-                        {{if eq .Type $.Hidden}}
-                        <select name="test_type[]">
-                            <option value="hidden">Hidden</option>
-                            <option value="sample">Sample (Visible)</option>
-                        </select>
-                        {{else}}
-                        <select name="test_type[]">
-                            <option value="sample">Sample (Visible)</option>
-                            <option value="hidden">Hidden</option>
-                        </select>
+                <div>
+                    <div class="section-title">Test Cases</div>
+                    <div id="test-case-container">
+                        {{range .Test}}
+                        <fieldset>
+                            <legend>Test Case 1</legend>
+                            <div class="two-col form-grid">
+                                <div class="field">
+                                    <label>Input</label>
+                                    <textarea name="test_input[]" rows="4">{{.Input}}</textarea>
+                                </div>
+                                <div class="field">
+                                    <label>Output</label>
+                                    <textarea name="test_output[]" rows="4">{{.Output}}</textarea>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label>Type</label>
+                                {{if eq .Type $.Hidden}}
+                                <select name="test_type[]">
+                                    <option value="hidden">Hidden</option>
+                                    <option value="sample">Sample (Visible)</option>
+                                </select>
+                                {{else}}
+                                <select name="test_type[]">
+                                    <option value="sample">Sample (Visible)</option>
+                                    <option value="hidden">Hidden</option>
+                                </select>
+                                {{end}}
+                            </div>
+                            <button type="button" class="remove-btn" onclick="removeTestCase(this)">Remove</button>
+                        </fieldset>
                         {{end}}
-                        <button type="button" class="remove-btn" onclick="removeTestCase(this)">Remove</button>
-
-                    </fieldset>
-
-                    {{end}}
+                    </div>
+                    <button type="button" class="add-btn" onclick="addTestCase()">+ Add Test Case</button>
                 </div>
-
-                <button type="button" class="add-btn" onclick="addTestCase()">+ Add Test Case</button>
             </div>
 
             <div id="languages" class="tab-content">
-                <label>Language </label><span style="margin-left: 6rem;">c++14 </span> <br><br>
-                <label for="time">Time limit (seconds)</label>
-                <input style="margin-left: 1rem;" type="number" name="time" id="time" min="1" max="5" value="{{.Time}}"
-                    required> <br><br>
-                <label for="memory">Memory limit (MB)</label>
-                <input style="margin-left: 2rem;" type="number" name="memory" id="memory" min="256" max="512"
-                    value="{{.Memory}}" required>
+                <div class="language-row">
+                    <span class="section-title">Language</span>
+                    <span class="language-pill">C++14</span>
+                </div>
+                <div class="two-col form-grid">
+                    <div class="field">
+                        <label for="time">Time limit (seconds)</label>
+                        <input type="number" name="time" id="time" min="1" max="5" value="{{.Time}}" required>
+                    </div>
+                    <div class="field">
+                        <label for="memory">Memory limit (MB)</label>
+                        <input type="number" name="memory" id="memory" min="256" max="512" value="{{.Memory}}" required>
+                    </div>
+                </div>
             </div>
 
             <div id="editoriaL" class="tab-content">
-                <label for="editorial">Editorial</label>
-                <textarea name="editorial" id="editorial" rows="6"
-                    placeholder="Describe the solution">{{.Editorial}}</textarea><br><br>
-                <label for="code">c++ code</label>
-                <textarea name="code" id="code" placeholder="Paste your c++ code here"
-                    style=" height: 25rem; resize: none;">{{.Code}}</textarea></code>
+                <div class="field">
+                    <label for="editorial">Editorial</label>
+                    <textarea name="editorial" id="editorial" rows="8" placeholder="Describe the solution">{{.Editorial}}</textarea>
+                </div>
+                <div class="field">
+                    <label for="code">C++ code</label>
+                    <textarea name="code" id="code" placeholder="Paste your c++ code here" spellcheck="false" autocapitalize="off" autocomplete="off">{{.Code}}</textarea>
+                </div>
             </div>
-            <div style="display: flex; justify-content: right; margin-top: 2rem;">
-                <button type="submit" class="submit-btn">Save Problem</button>
+
+            <div class="form-actions">
+                <button type="submit" class="submit-btn" onclick="isSaving = true;">Save Problem</button>
             </div>
         </form>
-
     </div>
-
-
-
-
-</div>
-</div>
-
+</section>
 
 <script>
 
@@ -349,19 +431,23 @@ don't change anything just make the UI beautiful:
 
         field.innerHTML = `
 <legend></legend>
-
-<label>Input</label>
-<textarea name="test_input[]" rows="3"></textarea>
-
-<label>Output</label>
-<textarea name="test_output[]" rows="3"></textarea>
-
-<label>Type</label>
-<select name="test_type[]">
-<option value="hidden">Hidden</option>
-<option value="sample">Sample (Visible)</option>
-</select>
-
+<div class="two-col form-grid">
+    <div class="field">
+        <label>Input</label>
+        <textarea name="test_input[]" rows="4"></textarea>
+    </div>
+    <div class="field">
+        <label>Output</label>
+        <textarea name="test_output[]" rows="4"></textarea>
+    </div>
+</div>
+<div class="field">
+    <label>Type</label>
+    <select name="test_type[]">
+        <option value="hidden">Hidden</option>
+        <option value="sample">Sample (Visible)</option>
+    </select>
+</div>
 <button type="button" class="remove-btn" onclick="removeTestCase(this)">Remove</button>
 `
 
@@ -398,6 +484,9 @@ don't change anything just make the UI beautiful:
         // Show the current tab, and add an "active" class to the button that opened the tab
         document.getElementById(tabName).classList.add("active");
         evt.currentTarget.classList.add("active");
+        if (window.problemCodeEditor) {
+            setTimeout(function () { window.problemCodeEditor.refresh(); }, 0);
+        }
     }
 </script>
 <script>
@@ -437,12 +526,7 @@ don't change anything just make the UI beautiful:
         selected.forEach(tag => {
             const span = document.createElement("span");
             span.classList.add("tag-chip");
-            span.innerHTML = `${tag.name} <button type="button" onclick="removeTag(${tag.id})" style="background:none; border:none; cursor:pointer; padding: 0 2px; line-height:1;">
-    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#e53e3e" stroke-width="2" stroke-linecap="round">
-        <line x1="2" y1="2" x2="10" y2="10"/>
-        <line x1="10" y1="2" x2="2" y2="10"/>
-    </svg>
-</button>`;
+            span.innerHTML = `${tag.name} <button type="button" onclick="removeTag(${tag.id})" aria-label="Remove tag">x</button>`;
             selectedDiv.appendChild(span);
         });
         hiddenInput.value = selected.map(t => t.id).join(",");
@@ -467,8 +551,57 @@ don't change anything just make the UI beautiful:
 
     document.addEventListener("DOMContentLoaded", renderTags);
 </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script>
+    (function () {
+        var textarea = document.getElementById("code");
+        if (!textarea || !window.CodeMirror) return;
+
+        window.problemCodeEditor = CodeMirror.fromTextArea(textarea, {
+            mode: "text/x-c++src",
+            lineNumbers: true,
+            indentUnit: 4,
+            tabSize: 4,
+            indentWithTabs: false,
+            autoCloseBrackets: true,
+            lineWrapping: false,
+            viewportMargin: Infinity,
+            extraKeys: {
+                Tab: function (cm) {
+                    if (cm.somethingSelected()) {
+                        cm.indentSelection("add");
+                    } else {
+                        cm.replaceSelection("    ", "end");
+                    }
+                }
+            }
+        });
+
+        window.problemCodeEditor.on("change", function (cm) {
+            cm.save();
+        });
+
+        var form = textarea.closest("form");
+        if (form) {
+            form.addEventListener("submit", function () {
+                window.problemCodeEditor.save();
+            });
+        }
+    })();
+</script>
+
+<!-- Add this flag variable -->
+<script>
+  let isSaving = false;
+</script>
+
+<!-- Updated beforeunload listener -->
 <script>
 window.addEventListener("beforeunload", function (e) {
+    if (isSaving) return; // Skip warning when saving
     e.preventDefault();
     e.returnValue = "";
 });

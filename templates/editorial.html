@@ -1,0 +1,230 @@
+{{define "content"}}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<style>
+    .submission-shell {
+        margin: 0 8rem 1.5rem;
+        display: grid;
+        gap: 12px;
+        color: var(--text-main);
+    }
+
+    .submission-head,
+    .submission-code-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+        overflow: hidden;
+    }
+
+    .submission-title-row {
+        padding: 0.9rem 1rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 0.8rem;
+        align-items: center;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.16);
+        flex-wrap: wrap;
+    }
+
+    .submission-title-row h1 {
+        margin: 0;
+        font-size: 1.08rem;
+        letter-spacing: -0.01em;
+    }
+
+    .submission-table-wrap {
+        overflow-x: auto;
+    }
+
+    .submission-table {
+        width: 100%;
+        min-width: 820px;
+        border-collapse: collapse;
+    }
+
+    .submission-table th,
+    .submission-table td {
+        padding: 0.68rem 0.72rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.18);
+        border-right: 1px solid rgba(49, 69, 95, 0.12);
+        text-align: center;
+        font-size: 0.88rem;
+        vertical-align: middle;
+    }
+
+    .submission-table th:last-child,
+    .submission-table td:last-child {
+        border-right: none;
+    }
+
+    .submission-table th {
+        color: #31455f;
+        background: #f9fbff;
+        font-size: 0.78rem;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    .submission-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .nav-btn,
+    .copy-btn {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        color: var(--accent);
+        padding: 0.42rem 0.68rem;
+        font-size: 0.84rem;
+        font-weight: 650;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .nav-btn:hover,
+    .copy-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+    }
+
+    .verdict-pill {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0.22rem 0.56rem;
+        border: 1px solid var(--border);
+        background: #f8fbff;
+        color: #52657d;
+        font-size: 0.8rem;
+        font-weight: 650;
+    }
+
+    .verdict-pill.accepted {
+        background: #e8f6e2;
+        border-color: #bcdcae;
+        color: #2e5c22;
+    }
+
+    .verdict-pill.wa {
+        background: #fce9e7;
+        border-color: #efc4bf;
+        color: #8a3026;
+    }
+
+    .submission-code-bar {
+        padding: 0.75rem 1rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 0.8rem;
+        align-items: center;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.16);
+    }
+
+    .submission-code-bar h2 {
+        margin: 0;
+        font-size: 0.98rem;
+        letter-spacing: -0.01em;
+    }
+
+    .code-viewer {
+        width: 100%;
+        min-height: 420px;
+        border: none;
+        resize: vertical;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 0.88rem;
+        line-height: 1.5;
+    }
+
+    .CodeMirror {
+        height: min(64vh, 620px);
+        min-height: 420px;
+        color: #162335;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 0.88rem;
+        line-height: 1.5;
+    }
+
+    .CodeMirror-gutters {
+        border-right: 1px solid rgba(49, 69, 95, 0.16);
+        background: #fbfdff;
+    }
+
+    .CodeMirror-linenumber {
+        color: #8a98aa;
+    }
+
+    .cm-s-default .cm-keyword {
+        color: #1f4e7a;
+        font-weight: 700;
+    }
+
+    .cm-s-default .cm-string {
+        color: #8a4a12;
+    }
+
+    .cm-s-default .cm-comment {
+        color: #6c7f93;
+        font-style: italic;
+    }
+
+    .cm-s-default .cm-number {
+        color: #246641;
+    }
+
+    .cm-s-default .cm-def,
+    .cm-s-default .cm-variable-2 {
+        color: #7a3d7c;
+    }
+    
+</style>
+
+<section class="submission-shell">
+    <!-- <div class="submission-head">
+        
+    </div> -->
+
+    <div class="submission-code-card">
+        <div class="submission-title-row">
+            <h1>{{.Ptitle}}</h1>
+        </div>
+        <div class="submission-title-row">{{.Editorial}}</div>
+        <div class="submission-code-bar">
+            <h2>Source code</h2>
+            <button type="button" class="copy-btn" onclick="copyCode()">Copy</button>
+        </div>
+        <textarea id="submission-code" class="code-viewer" spellcheck="false" readonly>{{.EditorialCode}}</textarea>
+    </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+<script>
+    var submissionEditor;
+
+    (function () {
+        var textarea = document.getElementById("submission-code");
+        if (!textarea || !window.CodeMirror) return;
+
+        submissionEditor = CodeMirror.fromTextArea(textarea, {
+            mode: "text/x-c++src",
+            lineNumbers: true,
+            readOnly: true,
+            indentUnit: 4,
+            tabSize: 4,
+            lineWrapping: false,
+            viewportMargin: Infinity
+        });
+    })();
+
+    function copyCode() {
+        var textarea = document.getElementById("submission-code");
+        var text = submissionEditor ? submissionEditor.getValue() : (textarea ? textarea.value : "");
+        navigator.clipboard.writeText(text);
+    }
+</script>
+{{end}}

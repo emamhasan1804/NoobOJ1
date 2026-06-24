@@ -1,81 +1,511 @@
 {{define "content"}}
 <style>
-    .solved td {
-        background-color: RGB(217, 236, 204)
+    .ps-shell {
+        margin: 0 8rem 1.5rem;
+        display: grid;
+        gap: 12px;
+        color: var(--text-main);
     }
 
-    .attempted td {
-        background-color: RGB(250, 228, 227)
+    .ps-head {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+        padding: 0.85rem 1rem;
+        display: grid;
+        gap: 0.65rem;
     }
 
-    .table-style {
-        margin-left: 8rem;
-        margin-right: 8rem;
+    .ps-head-row {
         display: flex;
-        flex-direction: column;
+        flex-wrap: wrap;
+        justify-content: space-between;
         align-items: center;
-        justify-content: center;
+        gap: 0.7rem;
     }
 
-    table {
+    .ps-head h1 {
+        margin: 0;
+        font-size: 1.08rem;
+        letter-spacing: -0.01em;
+    }
+
+    .ps-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+    }
+
+    .ps-chip {
+        border: 1px solid var(--border);
+        background: #f8fbff;
+        border-radius: 999px;
+        font-size: 0.76rem;
+        font-weight: 700;
+        padding: 0.22rem 0.5rem;
+        color: #415368;
+    }
+
+    .ps-chip.solved {
+        background: #e8f6e2;
+        border-color: #bcdcae;
+        color: #2e5c22;
+    }
+
+    .ps-chip.attempted {
+        background: #fce9e7;
+        border-color: #efc4bf;
+        color: #8a3026;
+    }
+
+    .ps-toolbar {
+        display: grid;
+        grid-template-columns: minmax(300px, 1fr) minmax(220px, 280px);
+        gap: 0.65rem;
+        align-items: center;
+        border: 1px solid rgba(49, 69, 95, 0.14);
+        border-radius: 10px;
+        background: #f7faff;
+        padding: 0.55rem;
+    }
+
+    .ps-search-group {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        align-items: stretch;
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        box-shadow: 0 1px 0 rgba(34, 53, 80, 0.03);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .ps-search-group:focus-within {
+        border-color: #9fbbdc;
+        box-shadow: 0 0 0 3px rgba(31, 78, 122, 0.11);
+    }
+
+    .ps-search-wrap {
+        position: relative;
+        min-width: 0;
+    }
+
+    .ps-search-wrap input.ps-input[type="text"] {
+        display: block;
         width: 100%;
-        table-layout: fixed;
-        word-wrap: break-word;
-        /* Prevents long text from breaking the layout */
+        height: 2.45rem;
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+        background: #ffffff;
+        color: var(--text-main);
+        padding: 0.42rem 0.75rem 0.42rem 2.05rem;
+        font-size: 0.86rem;
+        font-family: inherit;
+        outline: none;
+        box-shadow: none;
     }
 
-    table td,
-    table th {
-        padding: 20px;
-        font-size: large;
+    .ps-search-icon {
+        position: absolute;
+        left: 0.72rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #74869d;
+        font-size: 0.88rem;
+        pointer-events: none;
+    }
+
+    .ps-sort-wrap {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 0.5rem;
+        align-items: center;
+        min-width: 0;
+        height: 2.55rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        padding: 0 0.55rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .ps-sort-wrap:focus-within {
+        border-color: #9fbbdc;
+        box-shadow: 0 0 0 3px rgba(31, 78, 122, 0.11);
+    }
+
+    .ps-sort-label {
+        color: #61758c;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .ps-select {
+        width: 100%;
+        height: 2.2rem;
+        margin-top: 0;
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        color: var(--text-main);
+        padding: 0;
+        font-size: 0.86rem;
+        font-family: inherit;
+        outline: none;
+    }
+
+    .ps-search-btn,
+    .ps-clear-btn,
+    .ps-page-btn {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #f5f8fc;
+        color: var(--text-main);
+        min-height: 2.45rem;
+        padding: 0.38rem 0.72rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .ps-search-btn {
+        border-width: 0 0 0 1px;
+        border-radius: 0;
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #ffffff;
+    }
+
+    .ps-search-btn:hover {
+        background: #163c60;
+        border-color: #163c60;
+    }
+
+    .ps-clear-btn {
+        width: 2.45rem;
+        border-radius: 0;
+        padding: 0;
+        border-width: 0 0 0 1px;
+        border-color: rgba(49, 69, 95, 0.16);
+        background: #ffffff;
+        color: #61758c;
+        font-size: 1rem;
+        line-height: 1;
+    }
+
+    .ps-clear-btn:hover,
+    .ps-page-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+        color: var(--accent);
+    }
+
+
+    .ps-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-card);
+        overflow: hidden;
+    }
+
+    .ps-wrap {
+        overflow-x: auto;
+    }
+
+    .ps-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 940px;
+    }
+
+    .ps-table th,
+    .ps-table td {
+        padding: 0.62rem 0.58rem;
+        border-bottom: 1px solid rgba(49, 69, 95, 0.22);
+        border-right: 1px solid rgba(49, 69, 95, 0.18);
+        vertical-align: middle;
+        font-size: 0.88rem;
+    }
+
+    .ps-table th:last-child,
+    .ps-table td:last-child {
+        border-right: none;
+    }
+
+    .ps-table th {
+        text-align: center;
+        background: #f9fbff;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #31455f;
+    }
+
+    .ps-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .ps-row.solved {
+        background: #f8fdf5;
+    }
+
+    .ps-row.attempted {
+        background: #fff8f7;
+    }
+
+    .ps-id-cell,
+    .ps-rating-cell,
+    .ps-solved-cell,
+    .ps-open-cell {
+        text-align: center;
+        white-space: nowrap;
+    }
+
+
+    .ps-title-btn {
+        border: none;
+        background: none;
+        padding: 0;
+        margin: 0;
+        font: inherit;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #1a2f46;
         text-align: left;
+        cursor: pointer;
     }
 
-    table td:nth-child(1),
-    table th:nth-child(1),
-    table td:nth-child(3),
-    table th:nth-child(3),
-    table td:nth-child(4),
-    table th:nth-child(4) {
-        width: 6rem;
+    .ps-title-btn:hover {
+        color: #1f4e7a;
     }
 
-    h1 {
-        margin-top: 2rem;
-        color: #111;
+    .ps-tags {
+        margin-top: 0.34rem;
+        display: flex;
+        gap: 0.28rem;
+        flex-wrap: wrap;
+    }
+
+    .ps-tag {
+        font-size: 0.72rem;
+        padding: 0.16rem 0.38rem;
+        border-radius: 999px;
+        border: 1px solid #d5e1f0;
+        background: #f5f9ff;
+        color: #4e6178;
+    }
+
+    .ps-open-btn {
+        border: 1px solid var(--border);
+        background: #f5f8fc;
+        color: var(--text-main);
+        border-radius: var(--radius-md);
+        padding: 0.34rem 0.58rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .ps-open-btn:hover {
+        background: var(--accent-soft);
+        border-color: #c7d8ec;
+    }
+
+    .ps-empty {
+        text-align: center;
+        color: #7a8ea7;
+        font-size: 0.9rem;
+        padding: 1.1rem 0.8rem;
+    }
+
+    .ps-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        padding: 0.72rem 0.9rem;
+        border-top: 1px solid rgba(49, 69, 95, 0.22);
+        background: #fbfdff;
+    }
+
+    .ps-meta {
+        font-size: 0.82rem;
+        color: #5f7288;
+    }
+
+    .ps-pages {
+        display: flex;
+        gap: 0.45rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .ps-page-form {
+        margin: 0;
+    }
+
+    @media (max-width: 1100px) {
+        .ps-shell {
+            margin: 0 1rem 1.4rem;
+        }
+
+        .ps-toolbar {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .ps-shell {
+            margin: 0 0.75rem 1.2rem;
+        }
+
+        .ps-toolbar {
+            padding: 0.5rem;
+        }
+
+        .ps-search-group {
+            grid-template-columns: minmax(0, 1fr) auto auto;
+        }
+
+        .ps-search-btn {
+            padding: 0.38rem 0.58rem;
+        }
+
+        .ps-clear-btn {
+            width: 2.25rem;
+            min-height: 2.45rem;
+        }
+
+        .ps-sort-wrap {
+            grid-template-columns: 1fr;
+            gap: 0.1rem;
+            height: auto;
+            padding: 0.42rem 0.55rem;
+        }
+
+        .ps-table th,
+        .ps-table td {
+            padding: 0.54rem 0.48rem;
+            font-size: 0.82rem;
+        }
     }
 </style>
-<div class="table-style">
-    <h1>Problemset</h1>
-    <br>
-    <table border="1" style="border-collapse: collapse; color: rgb(74, 74, 74); width: 100%;">
-        <tr>
-            <th>#</th>
-            <th>Name</th>
-            <th>Rating</th>
-            <th>Solved by</th>
-        </tr>
-        {{range .Problems}}
-        <tr class="{{if eq .Tried 2}}solved{{else if eq .Tried 1}}attempted{{else}}unattempted{{end}}">
-            <td><a href="/problem?id={{.ID}}">{{.ID}}</a></td>
-            <td><a style="padding-right: 3px;" href="/problem?id={{.ID}}">{{.Title}}</a>
-                <sub style="font-size: small; color: #666;">
-                    {{range $index, $tag := .Tags -}}
-                    {{if $index}}, {{end}} {{$tag}}
-                    {{- end}}
-                </sub>
 
-            </td>
-            <td>*{{.Rating}}</td>
-            <td>{{.Solved}}</td>
-        </tr>
-        {{else}}
-        <tr>
-            <td colspan="4" style="text-align: center;">No data found.</td>
-        </tr>
-        {{end}}
+<section class="ps-shell">
+    <div class="ps-head">
+        <div class="ps-head-row">
+            <h1>Problemset</h1>
+            <div class="ps-legend">
+                <span class="ps-chip solved">Solved</span>
+                <span class="ps-chip attempted">Attempted</span>
+                <span class="ps-chip">Unattempted</span>
+            </div>
+        </div>
 
-    </table>
-</div>
+        <form class="ps-toolbar" method="get" action="/problemset">
+            <div class="ps-search-group">
+                <div class="ps-search-wrap">
+                    <span class="ps-search-icon">&#128269;</span>
+                    <input class="ps-input" type="text" name="q" value="{{.Search}}"
+                        placeholder="Search title, tag, id or rating" autocomplete="off">
+                </div>
+                {{if .Search}}
+                <button type="button" class="ps-clear-btn" title="Clear search" aria-label="Clear search"
+                    onclick="window.location.href='/problemset?sort={{.Sort}}'">&times;</button>
+                {{end}}
+                <button type="submit" class="ps-search-btn">Search</button>
+            </div>
+            <div class="ps-sort-wrap">
+                <label class="ps-sort-label" for="problem-sort">Filter</label>
+                <select id="problem-sort" class="ps-select" name="sort" onchange="this.form.submit()">
+                    <option value="id_asc" {{if eq .Sort "id_asc"}}selected{{end}}>ID ascending</option>
+                    <option value="id_desc" {{if eq .Sort "id_desc"}}selected{{end}}>ID descending</option>
+                    <option value="title_asc" {{if eq .Sort "title_asc"}}selected{{end}}>Title A-Z</option>
+                    <option value="title_desc" {{if eq .Sort "title_desc"}}selected{{end}}>Title Z-A</option>
+                    <option value="rating_asc" {{if eq .Sort "rating_asc"}}selected{{end}}>Rating low to high</option>
+                    <option value="rating_desc" {{if eq .Sort "rating_desc"}}selected{{end}}>Rating high to low</option>
+                    <option value="solved_asc" {{if eq .Sort "solved_asc"}}selected{{end}}>Solved low to high</option>
+                    <option value="solved_desc" {{if eq .Sort "solved_desc"}}selected{{end}}>Solved high to low</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <div class="ps-card">
+        <div class="ps-wrap">
+            <table class="ps-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Problem</th>
+                        <th>Rating</th>
+                        <th>Solved By</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Problems}}
+                    <tr class="ps-row {{if eq .Tried 2}}solved{{else if eq .Tried 1}}attempted{{else}}unattempted{{end}}">
+                        <td class="ps-id-cell">{{.ID}}</td>
+                        <td>
+                            <button type="button" class="ps-title-btn" onclick="window.location.href='/problem?id={{.ID}}'">{{.Title}}</button>
+                            <div class="ps-tags">
+                                {{range .Tags}}
+                                <span class="ps-tag">{{.}}</span>
+                                {{end}}
+                            </div>
+                        </td>
+                        <td class="ps-rating-cell">{{if gt .Rating 0}}*{{.Rating}}{{else}}-{{end}}</td>
+                        <td class="ps-solved-cell">{{.Solved}}</td>
+                        <td class="ps-open-cell">
+                            <button type="button" class="ps-open-btn" onclick="window.location.href='/problem?id={{.ID}}'">Open</button>
+                        </td>
+                    </tr>
+                    {{else}}
+                    <tr>
+                        <td colspan="5" class="ps-empty">No data found.</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="ps-footer">
+            <div class="ps-meta">Page {{.Page}}/{{if gt .TotalPages 0}}{{.TotalPages}}{{else}}1{{end}} • {{.Total}} results • {{.PageSize}} per page</div>
+            <div class="ps-pages">
+                {{if .HasPrev}}
+                <form class="ps-page-form" method="get" action="/problemset">
+                    <input type="hidden" name="q" value="{{.Search}}">
+                    <input type="hidden" name="sort" value="{{.Sort}}">
+                    <input type="hidden" name="page" value="{{.PrevPage}}">
+                    <button type="submit" class="ps-page-btn">Prev</button>
+                </form>
+                {{end}}
+
+                {{if .HasNext}}
+                <form class="ps-page-form" method="get" action="/problemset">
+                    <input type="hidden" name="q" value="{{.Search}}">
+                    <input type="hidden" name="sort" value="{{.Sort}}">
+                    <input type="hidden" name="page" value="{{.NextPage}}">
+                    <button type="submit" class="ps-page-btn">Next</button>
+                </form>
+                {{end}}
+            </div>
+        </div>
+    </div>
+</section>
 
 {{end}}

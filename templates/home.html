@@ -1,33 +1,361 @@
 {{define "content"}}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
 <style>
-    .bottom {
-        display: flex;
-        gap: 16px;
-        justify-content: center;
+    .home-shell {
+        margin: 0 8rem;
+        color: #182230;
+        font-family: "Space Grotesk", "Avenir Next", "Trebuchet MS", sans-serif;
     }
+
+    /* ── Hero ── */
+    .home-hero {
+        border-radius: var(--radius-lg);
+        padding: 4rem 3rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-card);
+        margin-bottom: 16px;
+    }
+
+    .home-badge {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 7px 12px;
+        font-size: 11px;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: #1f4e7a;
+        background: #edf4fb;
+        border: 1px solid #d5e4f4;
+        margin-bottom: 4px;
+    }
+
+    .home-hero h1 {
+        margin: 12px 0 14px;
+        max-width: 800px;
+        font-size: 42px;
+        line-height: 1.18;
+        letter-spacing: -0.03em;
+        color: #0f1f2f;
+    }
+
+    .home-hero h1 span {
+        color: #1f4e7a;
+    }
+
+    .home-hero > p {
+        margin: 0;
+        max-width: 620px;
+        font-size: 17px;
+        line-height: 1.6;
+        color: #4e5d73;
+    }
+
+    .home-hero-actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 28px;
+        flex-wrap: wrap;
+    }
+
+    .home-btn-primary,
+    .home-btn-secondary {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        text-decoration: none;
+        border-radius: var(--radius-md);
+        font-size: 15px;
+        font-weight: 700;
+        padding: 11px 20px;
+        transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .home-btn-primary {
+        background: #16395b;
+        color: #ffffff;
+        border: 1px solid #16395b;
+    }
+
+    .home-btn-primary:hover {
+        box-shadow: 0 7px 16px rgba(22, 57, 91, 0.2);
+    }
+
+    .home-btn-secondary {
+        background: #ffffff;
+        color: #1f4e7a;
+        border: 1px solid #d4dbe6;
+    }
+
+    .home-btn-secondary:hover {
+        background: #edf4fb;
+    }
+
+    /* ── Blog card ── */
+    .blog-card {
+        background: #fff;
+        border: 1px solid #e4e4e4;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-card);
+        margin-bottom: 2rem;
+    }
+
+    .blog-hero {
+        background: #1a1a2e;
+        padding: 2.5rem 2.5rem 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .blog-hero-accent {
+        position: absolute;
+        top: -40px;
+        right: -40px;
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: rgba(127, 119, 221, 0.15);
+    }
+
+    .blog-hero-accent2 {
+        position: absolute;
+        bottom: -30px;
+        left: 60px;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: rgba(29, 158, 117, 0.10);
+    }
+
+    .blog-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(127, 119, 221, 0.2);
+        color: #AFA9EC;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 4px 12px;
+        border-radius: 20px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 1.1rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .blog-hero h2 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #f0eeff;
+        margin: 0 0 0.6rem;
+        line-height: 1.3;
+        position: relative;
+        z-index: 1;
+        max-width: 600px;
+    }
+
+    .blog-hero-subtitle {
+        font-size: 14px;
+        color: #9d9bb8;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    .blog-body {
+        padding: 2rem 2.5rem;
+    }
+
+    .blog-body p {
+        font-size: 15px;
+        color: #2c3a4a;
+        line-height: 1.8;
+        margin: 0 0 1rem;
+    }
+
+    .blog-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin: 1.5rem 0;
+    }
+
+    .blog-stat {
+        background: #f5f7fa;
+        border: 1px solid #eaecf0;
+        border-radius: 10px;
+        padding: 1rem 1rem 0.85rem;
+        text-align: center;
+    }
+
+    .blog-stat-num {
+        font-size: 22px;
+        font-weight: 600;
+        color: #16395b;
+    }
+
+    .blog-stat-label {
+        font-size: 12px;
+        color: #7a8a9b;
+        margin-top: 3px;
+    }
+
+    .blog-divider {
+        border: none;
+        border-top: 1px solid #f0f0f0;
+        margin: 1.5rem 0;
+    }
+
+    .blog-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .blog-author {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .blog-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #16395b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 600;
+        color: #c8dff2;
+        flex-shrink: 0;
+    }
+
+    .blog-author-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    .blog-author-meta {
+        font-size: 12px;
+        color: #9aa5b4;
+        margin: 2px 0 0;
+    }
+
+    .blog-read-btn {
+        background: #16395b;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 18px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #fff;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+        transition: box-shadow 0.2s ease;
+    }
+
+    .blog-read-btn:hover {
+        box-shadow: 0 4px 12px rgba(22, 57, 91, 0.25);
+    }
+    
 </style>
-<section
-    style="display: flex; justify-content: center; align-items: center; padding: 50px 20px; min-height: 50vh;font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+<section class="home-shell">
 
-    <div style="max-width: 800px; text-align: center;">
-
-        <h1
-            style="font-size: 72px; font-weight: 800; color: #111; margin-bottom: 24px; letter-spacing: -2px; line-height: 1.1;">
-            Level Up Your Coding Skills.</h1>
-        <p
-            style="font-size: 20px;color: #666;line-height: 1.6;margin-bottom: 40px;max-width: 600px;margin-left: auto;margin-right: auto;">
-            A beginner friendly platform to solve challenges with c++, and climb the
-            leaderboard.</p>
-
-        <div class="bottom">
-            <a href="/problemset" class="btn-p"
-                style="background-color: #000000; color: #ffffff; padding: 16px 32px; text-decoration: none; font-weight: 600; font-size: 18px;">Start
-                Solving</a>
-            <a href="/leaderboard" class="btn-s"
-                style="background-color: #ffffff;color: #000000;padding: 16px 32px;text-decoration: none;font-weight: 600;font-size: 18px;border: 1px solid #000000;">Leaderboard</a>
+    <div class="home-hero">
+        <span class="home-badge">NoobOJ Coding Arena</span>
+        <br><br>
+        <h1>Build <span>problem solving confidence</span> with guided practice and fair competition.</h1>
+        <br>
+        <p>
+            Solve curated algorithmic problems, get instant verdicts, and grow from beginner to contest-ready with a focused online judge workflow.
+        </p>
+        <div class="home-hero-actions">
+            {{if eq .Pusername "Login"}}
+            <button type="button" onclick="window.location.href='/login'" class="home-btn-primary">Log In</button>
+            <button type="button" onclick="window.location.href='/register'" class="home-btn-secondary">Register</button>
+            {{else}}
+            <button type="button" onclick="window.location.href='/problemset'" class="home-btn-primary">Start Solving</button>
+            <button type="button" onclick="window.location.href='/contests'" class="home-btn-secondary">View Contests</button>
+            {{end}}
         </div>
     </div>
-</section>
+    <br>
 
+    <div class="blog-card">
+        <div class="blog-hero">
+            <div class="blog-hero-accent"></div>
+            <div class="blog-hero-accent2"></div>
+            <span class="blog-tag">
+                <i class="ti ti-tournament"></i> competitive programming
+            </span>
+            <h2>From zero to contestant — your first steps in competitive programming</h2>
+            <p class="blog-hero-subtitle">A beginner's guide to thinking algorithmically and competing with confidence.</p>
+        </div>
+
+        <div class="blog-body">
+            <p>
+                Competitive programming is the sport of solving well-defined algorithmic problems under time pressure.
+                It's part puzzle, part math, and part engineering — and it's one of the fastest ways to sharpen your
+                problem-solving instincts as a developer.
+            </p>
+            <p>
+                The core loop is simple: read a problem, design an algorithm, code it, and submit. But behind that
+                simplicity lies a rich world of data structures, graph theory, dynamic programming, and more. Each
+                problem you solve teaches you a new mental model you can apply forever.
+            </p>
+
+            <div class="blog-stats">
+                <div class="blog-stat">
+                    <div class="blog-stat-num">3K+</div>
+                    <div class="blog-stat-label">problems on top OJs</div>
+                </div>
+                <div class="blog-stat">
+                    <div class="blog-stat-num">100+</div>
+                    <div class="blog-stat-label">algorithms to master</div>
+                </div>
+                <div class="blog-stat">
+                    <div class="blog-stat-num">∞</div>
+                    <div class="blog-stat-label">things to learn</div>
+                </div>
+            </div>
+
+            <p>
+                Start small. Pick problems rated just above your comfort zone, struggle a little, then read the
+                editorial. That cycle — attempt, fail, learn — is where all the growth happens. NoobOJ is built
+                exactly for this journey.
+            </p>
+
+            <hr class="blog-divider">
+
+            <div class="blog-footer">
+                <div class="blog-author">
+                    <div class="blog-avatar">OJ</div>
+                    <div>
+                        <p class="blog-author-name">NoobOJ Team</p>
+                        <p class="blog-author-meta">June 13, 2026 · read</p>
+                    </div>
+                </div>
+                <a href="/blog" class="blog-read-btn">
+                    Read more <i class="ti ti-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+</section>
 
 {{end}}
